@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat — SkillSphere</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .message-bubble { 
+      position: relative; 
+      overflow: visible !important;
+    }
+    .msg-delete-btn {
+      position: absolute;
+      top: -10px;
+      right: 0;
+      background: rgba(220,38,38,0.9);
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 10px;
+      line-height: 1;
+      opacity: 0;
+      transition: opacity 0.15s, background 0.15s, transform 0.1s;
+      padding: 0;
+      color: #fff;
+      flex-shrink: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .message-bubble.mine { 
+      padding-right: 10px; 
+      overflow: visible !important;
+    }
+    .message-bubble.mine .msg-delete-btn { 
+      right: -8px;
+      top: -8px;
+    }
+    .message-bubble.mine:hover .msg-delete-btn { 
+      opacity: 1; 
+      transform: scale(1.1);
+    }
+    .msg-delete-btn:hover { 
+      background: rgba(220,38,38,1) !important;
+      transform: scale(1.2);
+    }
+    .chat-messages {
+      overflow: visible !important;
+    }
+
+    /* ── Topbar fix: View Profile + Delete on same line, no overlap ── */
+    .chat-topbar {
+      display: flex !important;
+      align-items: center !important;
+      gap: 0.75rem;
+      flex-wrap: nowrap;
+    }
+    .chat-topbar-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .chat-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    .chat-actions .btn {
+      white-space: nowrap;
+    }
+    .chat-topbar-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="nav-logo">SkillSphere</div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="search.html">Explore</a></li>
+      <li class="nav-item-dropdown" id="navRequestsItem">
+        <a href="#" onclick="toggleNavDropdown('navRequestsDropdown', event)">Requests <span class="nav-badge"
+            id="navRequestsBadge" style="display:none">0</span></a>
+        <div class="nav-dropdown-panel" id="navRequestsDropdown">
+          <div class="nav-dropdown-header">Incoming Requests</div>
+          <div class="nav-dropdown-body" id="navRequestsBody">
+            <div class="nav-dropdown-empty">No pending requests.</div>
+          </div>
+          <a href="requests.html" class="nav-dropdown-footer">View All Requests</a>
+        </div>
+      </li>
+      <li><a href="connections.html">Connections</a></li>
+      <li class="nav-item-dropdown" id="navChatItem">
+        <a href="#" class="active" onclick="toggleNavDropdown('navChatDropdown', event)">Chat <span class="nav-badge"
+            id="navChatBadge" style="display:none">0</span></a>
+        <div class="nav-dropdown-panel" id="navChatDropdown">
+          <div class="nav-dropdown-header">Unread Messages</div>
+          <div class="nav-dropdown-body" id="navChatBody">
+            <div class="nav-dropdown-empty">No new messages.</div>
+          </div>
+          <a href="chat.html" class="nav-dropdown-footer">Open Messages</a>
+        </div>
+      </li>
+      <li><a href="profile.html">Profile</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button onclick="logout()" class="btn btn-ghost btn-sm">Log out</button>
+    </div>
+  </nav>
+
+  <div class="chat-shell">
+    <div class="chat-sidebar">
+      <div class="chat-sidebar-header">💬 Messages</div>
+      <div id="connectionsList"></div>
+    </div>
+
+    <div class="chat-main" id="chatMain">
+      <div class="chat-placeholder">
+        <div class="chat-placeholder-box">
+          <div class="chat-placeholder-icon">💬</div>
+          <div
+            style="font-weight:800;color:var(--text);font-size:1rem;margin-bottom:0.4rem;font-family:var(--font-display)">
+            Select a conversation</div>
+          <div style="font-size:0.83rem;color:var(--text-muted);line-height:1.6;max-width:220px;margin:0 auto">Chat is
+            only available with accepted connections. Choose someone from the left.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const token = localStorage.getItem('ss_token');
+    if (!token) window.location.href = 'login.html';
+
+    const myUser = JSON.parse(localStorage.getItem('ss_user') || '{}');
+    const socket = io();
+
+    let currentPartnerId = null;
+    let currentPartnerName = '';
+    let socketReady = false;
+    let typingTimeout = null;
+    let typingVisibleTimer = null;
+    let isTyping = false;
+    let currentMessages = [];
+    let lastKnownStatus = { isOnline: false, lastSeen: null };
+
+    socket.on('connect', () => {
+      socketReady = true;
+      if (myUser.id) socket.emit('join_user_room', String(myUser.id));
+    });
+    socket.on('disconnect', () => { socketReady = false; });
+
+    function authHeader() { return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }; }
+    function logout() { localStorage.removeItem('ss_token'); localStorage.removeItem('ss_user'); window.location.href = 'index.html'; }
+    function getInitials(name) { return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2); }
+
+    function formatLastSeen(lastSeen) {
+      if (!lastSeen) return 'Offline';
+      const d = new Date(lastSeen);
+      return `Last seen ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    }
+
+    function updatePartnerStatus(isOnline, lastSeen = null) {
+      const statusEl = document.getElementById('partnerStatus');
+      if (!statusEl) return;
+      lastKnownStatus = { isOnline, lastSeen };
+      if (statusEl.dataset.typing === 'true') return;
+      statusEl.textContent = isOnline ? '● Online' : `● ${formatLastSeen(lastSeen)}`;
+      statusEl.style.color = isOnline ? 'var(--success)' : 'var(--text-muted)';
+    }
+
+    function showTypingStatus() {
+      const statusEl = document.getElementById('partnerStatus');
+      if (!statusEl) return;
+      statusEl.dataset.typing = 'true';
+      statusEl.innerHTML = `<span style="color:var(--accent-hover);display:flex;align-items:center;gap:6px;">Typing <span class="typing-dots"><span></span><span></span><span></span></span></span>`;
+    }
+
+    function hideTypingStatus() {
+      const statusEl = document.getElementById('partnerStatus');
+      if (!statusEl) return;
+      statusEl.dataset.typing = 'false';
+      updatePartnerStatus(lastKnownStatus.isOnline, lastKnownStatus.lastSeen);
+    }
+
+    function getTicks(m, isLastMine) {
+      if (!isLastMine || m.is_deleted) return '';
+      if (m.is_read) return `<span style="color:#38bdf8;margin-left:6px;font-size:13px;font-weight:700;letter-spacing:-2px">✓✓</span>`;
+      if (m.is_delivered) return `<span style="color:rgba(255,255,255,0.4);margin-left:6px;font-size:13px;font-weight:700;letter-spacing:-2px">✓✓</span>`;
+      return '';
+    }
+
+    function timeAgo(date) {
+      const seconds = Math.floor((new Date() - date) / 1000);
+      if (seconds < 60) return 'just now';
+      if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+      if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+      return `${Math.floor(seconds / 86400)}d ago`;
+    }
+
+    // Nav Dropdown Logic
+    function toggleNavDropdown(id, e) {
+      if (e) e.preventDefault();
+      const el = document.getElementById(id);
+      const parent = el.parentElement;
+      const isOpen = parent.classList.contains('open');
+      document.querySelectorAll('.nav-item-dropdown').forEach(d => d.classList.remove('open'));
+      if (!isOpen) parent.classList.add('open');
+    }
+
+    window.addEventListener('click', e => {
+      if (!e.target.closest('.nav-item-dropdown')) {
+        document.querySelectorAll('.nav-item-dropdown').forEach(d => d.classList.remove('open'));
+      }
+    });
+
+    async function loadNavNotifications() {
+      try {
+        const res = await fetch('/api/auth/nav-notifications', { headers: authHeader() });
+        if (!res.ok) return;
+        const { requests, messages } = await res.json();
+        const reqBadge = document.getElementById('navRequestsBadge');
+        const reqBody = document.getElementById('navRequestsBody');
+        if (requests.length > 0) {
+          reqBadge.textContent = requests.length;
+          reqBadge.style.display = 'inline-flex';
+          reqBody.innerHTML = requests.map(r => `
+          <a href="requests.html" class="nav-notification-item">
+            <div class="nav-notif-avatar">${getInitials(r.name)}</div>
+            <div class="nav-notif-content">
+              <div class="nav-notif-title">${r.name}</div>
+              <div class="nav-notif-desc">Requested help with ${r.skill_title}</div>
+              <div class="nav-notif-time">${timeAgo(new Date(r.created_at))}</div>
+            </div>
+            <div class="nav-notif-dot"></div>
+          </a>
+        `).join('');
+        } else {
+          reqBadge.style.display = 'none';
+          reqBody.innerHTML = '<div class="nav-dropdown-empty">No pending requests.</div>';
+        }
+        const chatBadge = document.getElementById('navChatBadge');
+        const chatBody = document.getElementById('navChatBody');
+        if (messages.length > 0) {
+          chatBadge.textContent = messages.length;
+          chatBadge.style.display = 'inline-flex';
+          chatBody.innerHTML = messages.map(m => `
+          <a href="chat.html?user=${m.sender_id}&name=${encodeURIComponent(m.name)}" class="nav-notification-item">
+            <div class="nav-notif-avatar">${getInitials(m.name)}</div>
+            <div class="nav-notif-content">
+              <div class="nav-notif-title">${m.name}</div>
+              <div class="nav-notif-desc">${m.content}</div>
+              <div class="nav-notif-time">${timeAgo(new Date(m.created_at))}</div>
+            </div>
+            <div class="nav-notif-dot"></div>
+          </a>
+        `).join('');
+        } else {
+          chatBadge.style.display = 'none';
+          chatBody.innerHTML = '<div class="nav-dropdown-empty">No new messages.</div>';
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    async function loadConnections() {
+      try {
+        const res = await fetch('/api/connections', { headers: authHeader() });
+        const conns = await res.json();
+        const list = document.getElementById('connectionsList');
+
+        if (!Array.isArray(conns) || conns.length === 0) {
+          list.innerHTML = `<div style="padding:1.5rem;text-align:center;color:var(--text-muted);font-size:0.84rem;line-height:1.7">No connections yet.<br/><a href="search.html" style="color:var(--accent-hover);font-weight:600">Find mentors →</a></div>`;
+          return;
+        }
+
+        // Deduplicate by partner_id (keep first occurrence)
+        const uniqueConns = {};
+        conns.forEach(c => { if (!uniqueConns[c.partner_id]) uniqueConns[c.partner_id] = c; });
+
+        list.innerHTML = Object.values(uniqueConns).map(c => {
+          const avatarUrl = c.avatar_url || c.partner_avatar || '';
+          const avatarHtml = avatarUrl
+            ? `<img src="${avatarUrl}" alt="${c.partner_name}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
+            : `<div class="avatar">${getInitials(c.partner_name)}</div>`;
+          const safeName = c.partner_name.replace(/'/g, "\\'");
+          const safeAvatar = avatarUrl.replace(/'/g, "\\'");
+          return `
+          <div class="chat-user-item" id="sidebar-${c.partner_id}" data-partner-avatar="${avatarUrl}" onclick="openChat('${c.partner_id}', '${safeName}', '${safeAvatar}')">
+            ${avatarHtml}
+            <div>
+              <div class="chat-user-name">${c.partner_name}</div>
+              <div class="chat-user-preview">${c.skill_title || 'Connected'}</div>
+            </div>
+          </div>`;
+        }).join('');
+
+        const params = new URLSearchParams(window.location.search);
+        const userId = params.get('user');
+        const userName = params.get('name');
+        if (userId && userName) openChat(String(userId), decodeURIComponent(userName));
+      } catch (e) { }
+    }
+
+    async function openChat(partnerId, partnerName, partnerAvatar) {
+      currentPartnerId = String(partnerId);
+      currentPartnerName = partnerName;
+
+      document.querySelectorAll('.chat-user-item').forEach(el => el.classList.remove('active'));
+      const sidebarItem = document.getElementById(`sidebar-${partnerId}`);
+      if (sidebarItem) {
+        sidebarItem.classList.add('active');
+        // Pick up avatar from sidebar data attribute if not passed in
+        if (!partnerAvatar) partnerAvatar = sidebarItem.dataset.partnerAvatar || '';
+      }
+
+      const avatarHtml = partnerAvatar
+        ? `<img src="${partnerAvatar}" alt="${partnerName}" class="chat-topbar-avatar">`
+        : `<div class="avatar">${getInitials(partnerName)}</div>`;
+
+      document.getElementById('chatMain').innerHTML = `
+      <div class="chat-topbar">
+        ${avatarHtml}
+        <div class="chat-topbar-info">
+          <div class="chat-partner-name">${partnerName}</div>
+          <div class="chat-partner-status" id="partnerStatus" data-typing="false">● Checking...</div>
+        </div>
+        <div class="chat-actions">
+          <a href="profile.html?userId=${partnerId}" class="btn btn-ghost btn-sm" style="font-size:0.78rem;color:var(--text-muted)">View Profile →</a>
+        </div>
+      </div>
+      <div class="chat-messages" id="messagesArea"></div>
+      <div class="chat-inputbar">
+        <input type="text" id="msgInput" placeholder="Type a message..."
+          oninput="handleTyping()"
+          onkeydown="if(event.key==='Enter') sendMessage()" />
+        <button class="chat-send-btn" onclick="sendMessage()">➤</button>
+      </div>`;
+
+      await loadMessages();
+      await markDelivered();
+      await markSeenIfActuallyViewing();
+
+      setTimeout(() => {
+        if (socketReady) socket.emit('check_user_status', String(partnerId));
+        else updatePartnerStatus(false);
+      }, 300);
+    }
+
+    async function markDelivered() {
+      if (!currentPartnerId) return;
+      try {
+        await fetch(`/api/messages/delivered/${currentPartnerId}`, { method: 'PATCH', headers: authHeader() });
+      } catch(e) {}
+    }
+
+    async function markSeen() {
+      if (!currentPartnerId) return;
+      try {
+        await fetch(`/api/messages/seen/${currentPartnerId}`, { method: 'PATCH', headers: authHeader() });
+      } catch(e) {}
+    }
+
+    async function loadMessages() {
+      if (!currentPartnerId) return;
+      try {
+        const res = await fetch(`/api/messages/${currentPartnerId}`, { headers: authHeader() });
+        if (!res.ok) return;
+        const msgs = await res.json();
+        currentMessages = msgs;
+        renderMessages(msgs);
+      } catch (e) { }
+    }
+
+    function renderMessages(msgs) {
+      const area = document.getElementById('messagesArea');
+      if (!area) return;
+      if (!Array.isArray(msgs) || msgs.length === 0) {
+        area.innerHTML = `<div style="text-align:center;color:var(--text-muted);margin-top:3rem;font-size:0.88rem">No messages yet. Say hello! 👋</div>`;
+        return;
+      }
+      const lastMineIndex = [...msgs].map(x => String(x.sender_id) === String(myUser.id)).lastIndexOf(true);
+      area.innerHTML = msgs.map((m, index) => {
+        const mine = String(m.sender_id) === String(myUser.id);
+        const time = new Date(m.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const isLastMine = mine && index === lastMineIndex;
+        const deleteBtn = (mine && !m.is_deleted)
+          ? `<button class="msg-delete-btn" data-id="${m.id}" title="Delete message">🗑️</button>`
+          : '';
+        return `
+        <div class="message-bubble ${mine ? 'mine' : 'theirs'}">
+          ${deleteBtn}
+          <div style="${m.is_deleted ? 'font-style:italic;opacity:1;' : ''}">${m.content}</div>
+          <div class="message-time ${mine ? '' : 'theirs'}">
+            <span>${time}</span>
+            ${mine ? getTicks(m, isLastMine) : ''}
+          </div>
+        </div>`;
+      }).join('');
+      area.scrollTop = area.scrollHeight;
+    }
+
+    async function markSeenIfActuallyViewing() {
+      if (!currentPartnerId || document.hidden || !document.hasFocus()) return;
+      try { await markSeen(); await loadMessages(); await loadNavNotifications(); } catch (e) { }
+    }
+
+    function handleTyping() {
+      if (!currentPartnerId || !socketReady) return;
+      if (!isTyping) { isTyping = true; socket.emit('typing', { sender_id: String(myUser.id), receiver_id: String(currentPartnerId) }); }
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        isTyping = false;
+        socket.emit('stop_typing', { sender_id: String(myUser.id), receiver_id: String(currentPartnerId) });
+      }, 1500);
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('msgInput');
+      if (!input) return;
+      const content = input.value.trim();
+      if (!content || !currentPartnerId) return;
+      input.value = '';
+      if (isTyping) { isTyping = false; socket.emit('stop_typing', { sender_id: String(myUser.id), receiver_id: String(currentPartnerId) }); clearTimeout(typingTimeout); }
+      try {
+        const res = await fetch('/api/messages', {
+          method: 'POST', headers: authHeader(),
+          body: JSON.stringify({ receiver_id: currentPartnerId, content })
+        });
+        const data = await res.json();
+        if (!res.ok) return;
+        await loadMessages();
+        socket.emit('send_message', { messageId: data.messageId, sender_id: String(myUser.id), receiver_id: String(currentPartnerId), content, sent_at: new Date().toISOString(), sender_name: myUser.name });
+        await loadNavNotifications();
+      } catch (e) { }
+    }
+
+    async function deleteMessage(messageId) {
+      if (!confirm('Delete this message?')) return;
+      // Optimistically update UI immediately
+      const msgIndex = currentMessages.findIndex(m => Number(m.id) === Number(messageId));
+      if (msgIndex !== -1) {
+        currentMessages[msgIndex] = { ...currentMessages[msgIndex], is_deleted: true, content: 'You deleted this message' };
+        renderMessages(currentMessages);
+      }
+      try {
+        const res = await fetch(`/api/messages/${messageId}`, { method: 'DELETE', headers: authHeader() });
+        if (!res.ok) {
+          await loadMessages();
+          return;
+        }
+        socket.emit('message_deleted', { messageId, receiver_id: String(currentPartnerId) });
+        await loadMessages();
+      } catch (e) {
+        await loadMessages();
+      }
+    }
+
+    // Delete button click delegation — fires only from .msg-delete-btn
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('.msg-delete-btn');
+      if (!btn) return;
+      e.stopPropagation();
+      const id = Number(btn.dataset.id);
+      if (id) deleteMessage(id);
+    });
+
+    // Socket events
+    socket.on('receive_message', async (message) => {
+      if (currentPartnerId && String(message.sender_id) === String(currentPartnerId)) {
+        await loadMessages(); await markDelivered(); await markSeenIfActuallyViewing();
+      } else { loadNavNotifications(); }
+    });
+    socket.on('messages_delivered', async (data) => {
+      if (currentPartnerId && String(data.by) === String(currentPartnerId)) await loadMessages();
+    });
+    socket.on('messages_seen', async (data) => {
+      if (currentPartnerId && String(data.by) === String(currentPartnerId)) await loadMessages();
+    });
+    socket.on('user_typing', (data) => {
+      if (currentPartnerId && String(data.sender_id) === String(currentPartnerId)) {
+        showTypingStatus();
+        clearTimeout(typingVisibleTimer);
+        typingVisibleTimer = setTimeout(hideTypingStatus, 1800);
+      }
+    });
+    socket.on('user_stop_typing', (data) => {
+      if (currentPartnerId && String(data.sender_id) === String(currentPartnerId)) hideTypingStatus();
+    });
+    socket.on('message_deleted_live', async (data) => {
+      const found = currentMessages.find(m => Number(m.id) === Number(data.messageId));
+      if (found) await loadMessages();
+    });
+    socket.on('user_status_result', (data) => {
+      if (currentPartnerId && String(data.userId) === String(currentPartnerId)) updatePartnerStatus(data.isOnline, data.lastSeen);
+    });
+    socket.on('user_online', (data) => {
+      if (currentPartnerId && String(data.userId) === String(currentPartnerId)) updatePartnerStatus(true, null);
+    });
+    socket.on('user_offline', (data) => {
+      if (currentPartnerId && String(data.userId) === String(currentPartnerId)) updatePartnerStatus(false, data.lastSeen);
+    });
+
+    window.addEventListener('focus', () => markSeenIfActuallyViewing());
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) markSeenIfActuallyViewing(); });
+
+    loadConnections();
+    loadNavNotifications();
+    setInterval(() => { loadNavNotifications(); }, 15000);
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register — SkillSphere</title>
+  <meta name="description" content="Create your SkillSphere account and join the verified peer learning network." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🚀</div>
+      <div class="auth-logo-text">SkillSphere</div>
+    </div>
+
+    <h1 class="auth-title">Create your account</h1>
+    <p class="auth-sub">Join the verified peer learning network — it's free</p>
+
+    <div id="alert" class="alert"></div>
+
+    <div class="form-group">
+      <label class="form-label" for="name">Full Name</label>
+      <input type="text" id="name" class="form-input" placeholder="Your full name" autocomplete="name" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="email">Email Address</label>
+      <input type="email" id="email" class="form-input" placeholder="you@example.com" autocomplete="email" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="password">Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="password" class="form-input" placeholder="Create a strong password" autocomplete="new-password" style="padding-right:3rem" />
+        <button type="button" class="pw-toggle" onclick="togglePassword()" aria-label="Toggle password" id="toggleBtn">
+          <span id="eyeIcon">👁️</span>
+        </button>
+      </div>
+      <small style="color:var(--text-muted);font-size:0.78rem;margin-top:0.25rem;display:block">
+        At least 8 characters with uppercase, lowercase, number &amp; special character.
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="location">Location <span style="font-weight:400;color:var(--text-muted);text-transform:none">(Optional)</span></label>
+      <input type="text" id="location" class="form-input" placeholder="Mumbai, India" autocomplete="address-level2" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="bio">Bio <span style="font-weight:400;color:var(--text-muted);text-transform:none">(Optional)</span></label>
+      <textarea id="bio" class="form-textarea" rows="3" placeholder="Tell us a little about yourself..."></textarea>
+    </div>
+
+    <button onclick="register()" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:0.5rem" id="regBtn">
+      Create Account
+    </button>
+
+    <div class="auth-footer">
+      Already have an account? <a href="login.html">Log in</a>
+    </div>
+
+    <div style="margin-top:1.5rem;text-align:center">
+      <a href="index.html" style="color:var(--text-muted);font-size:0.85rem;transition:var(--transition)">← Back to home</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showAlert(msg, type) {
+    const el = document.getElementById('alert');
+    el.textContent = msg;
+    el.className = `alert alert-${type} show`;
+    setTimeout(() => { el.className = 'alert'; }, 5500);
+  }
+
+  function togglePassword() {
+    const input = document.getElementById('password');
+    const icon = document.getElementById('eyeIcon');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.textContent = '🙈';
+    } else {
+      input.type = 'password';
+      icon.textContent = '👁️';
+    }
+  }
+
+  async function register() {
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const location = document.getElementById('location').value.trim();
+    const bio = document.getElementById('bio').value.trim();
+    const btn = document.getElementById('regBtn');
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#])[A-Za-z\d@$!%*?&.#]{8,}$/;
+
+    if (!name || !email || !password) return showAlert('Name, email, and password are required.', 'error');
+    if (!emailRegex.test(email)) return showAlert('Please enter a valid email address.', 'error');
+    if (!passwordRegex.test(password)) return showAlert('Password must be 8+ chars with uppercase, lowercase, number & special character.', 'error');
+
+    btn.disabled = true;
+    btn.textContent = 'Creating account...';
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, location, bio })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showAlert(data.error || 'Registration failed. Please try again.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+        return;
+      }
+      localStorage.setItem('ss_token', data.token);
+      localStorage.setItem('ss_user', JSON.stringify(data.user));
+      showAlert('Account created! Redirecting to dashboard...', 'success');
+      setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
+    } catch (e) {
+      showAlert('Network error. Please try again.', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Create Account';
+    }
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') register(); });
+  document.addEventListener('DOMContentLoaded', () => { document.getElementById('name').focus(); });
+</script>
+</body>
+</html>

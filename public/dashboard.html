@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — SkillSphere</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-logo">SkillSphere</div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html" class="active">Dashboard</a></li>
+      <li><a href="search.html">Explore</a></li>
+      <li class="nav-item-dropdown" id="navRequestsItem">
+        <a href="#" onclick="toggleNavDropdown('navRequestsDropdown', event)">Requests <span class="nav-badge"
+            id="navRequestsBadge" style="display:none">0</span></a>
+        <div class="nav-dropdown-panel" id="navRequestsDropdown">
+          <div class="nav-dropdown-header">Incoming Requests</div>
+          <div class="nav-dropdown-body" id="navRequestsBody">
+            <div class="nav-dropdown-empty">No pending requests.</div>
+          </div>
+          <a href="requests.html" class="nav-dropdown-footer">View All Requests</a>
+        </div>
+      </li>
+      <li><a href="connections.html">Connections</a></li>
+      <li class="nav-item-dropdown" id="navChatItem">
+        <a href="#" onclick="toggleNavDropdown('navChatDropdown', event)">Chat <span class="nav-badge" id="navChatBadge"
+            style="display:none">0</span></a>
+        <div class="nav-dropdown-panel" id="navChatDropdown">
+          <div class="nav-dropdown-header">Unread Messages</div>
+          <div class="nav-dropdown-body" id="navChatBody">
+            <div class="nav-dropdown-empty">No new messages.</div>
+          </div>
+          <a href="chat.html" class="nav-dropdown-footer">Open Messages</a>
+        </div>
+      </li>
+      <li><a href="profile.html">Profile</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button onclick="logout()" class="btn btn-ghost btn-sm">Log out</button>
+    </div>
+  </nav>
+
+  <!-- SKILL POSTING WIZARD MODAL -->
+  <div class="modal-overlay" id="skillModal">
+    <div class="modal" style="max-width: 650px;">
+      <div class="modal-header">
+        <div class="modal-title">✨ Teach a Skill — Posting Wizard</div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div id="modalAlert" class="alert"></div>
+
+      <div id="wizardStep1">
+        <p
+          style="font-size:0.87rem;color:var(--text-secondary);margin-bottom:1.5rem;padding:0.9rem;background:rgba(139,92,246,0.06);border-radius:var(--radius-sm);border:1px solid rgba(139,92,246,0.2)">
+          ✦ Step 1: Basic Skill Information
+        </p>
+        <div class="form-group">
+          <label class="form-label">Skill Title *</label>
+          <input type="text" id="s_title" class="form-input"
+            placeholder="e.g. Machine Learning, Guitar, Figma Design" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Category *</label>
+            <select id="s_category" class="form-select">
+              <option value="">Select category</option>
+              <option>Technology</option>
+              <option>Design</option>
+              <option>Music</option>
+              <option>Language</option>
+              <option>Business</option>
+              <option>Fitness</option>
+              <option>Art</option>
+              <option>Science</option>
+              <option>Photography</option>
+              <option>Writing</option>
+              <option>Cooking</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Your Level *</label>
+            <select id="s_level" class="form-select">
+              <option value="">Select level</option>
+              <option>Intermediate</option>
+              <option>Advanced</option>
+              <option>Expert</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description *</label>
+          <textarea id="s_desc" class="form-textarea" rows="2"
+            placeholder="What will you teach? What topics will you cover?"></textarea>
+        </div>
+        <button onclick="wizardNext(2)" class="btn btn-primary" style="width:100%;justify-content:center">Next: Teaching
+          Preferences</button>
+      </div>
+
+      <div id="wizardStep2" style="display:none">
+        <p
+          style="font-size:0.87rem;color:var(--text-secondary);margin-bottom:1.5rem;padding:0.9rem;background:rgba(139,92,246,0.06);border-radius:var(--radius-sm);border:1px solid rgba(139,92,246,0.2)">
+          ✦ Step 2: Teaching & Availability
+        </p>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Teaching Mode</label>
+            <select id="s_mode" class="form-select">
+              <option value="Online">Online</option>
+              <option value="Offline">Offline</option>
+              <option value="Both">Both</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Availability</label>
+            <select id="s_avail" class="form-select">
+              <option value="Both">Both Weekdays & Weekend</option>
+              <option value="Weekdays">Weekdays Only</option>
+              <option value="Weekend">Weekend Only</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Price Model</label>
+            <select id="s_price_type" class="form-select" onchange="togglePriceInput(this.value)">
+              <option value="Free">Free</option>
+              <option value="Paid">Paid (Cash)</option>
+              <option value="Skill Exchange">Skill Exchange</option>
+            </select>
+          </div>
+          <div class="form-group" id="priceValueGroup" style="display:none">
+            <label class="form-label">Price / Value</label>
+            <input type="text" id="s_price_value" class="form-input" placeholder="e.g. $50/hr or 'React Basics'" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Offer Free Demo Session?</label>
+          <select id="s_demo" class="form-select">
+            <option value="false">No</option>
+            <option value="true">Yes, 30 min free demo</option>
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:1rem">
+          <button onclick="wizardNext(1)" class="btn btn-outline">Back</button>
+          <button onclick="wizardNext(3)" class="btn btn-primary">Next: Verification</button>
+        </div>
+      </div>
+
+      <div id="wizardStep3" style="display:none">
+        <p
+          style="font-size:0.87rem;color:var(--text-secondary);margin-bottom:1.5rem;padding:0.9rem;background:rgba(139,92,246,0.06);border-radius:var(--radius-sm);border:1px solid rgba(139,92,246,0.2)">
+          ✦ Step 3: Expertise & Verification
+        </p>
+        <div class="form-group">
+          <label class="form-label">How did you learn this skill? *</label>
+          <textarea id="s_how" class="form-textarea" rows="2"
+            placeholder="Self-taught, formal education, internship..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Practice Duration *</label>
+            <input type="text" id="s_duration" class="form-input" placeholder="e.g. 4 years" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Unique Value *</label>
+            <input type="text" id="s_why" class="form-input" placeholder="Why learn from you?" />
+          </div>
+        </div>
+        <div class="form-group upload-proof-wrap" id="proofContainer">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+            <label class="form-label" style="margin-bottom:0">Proof / Certificate</label>
+            <div class="proof-mode-switch">
+              <button type="button" onclick="setProofMode('link')" id="modeLink"
+                class="proof-mode-btn active">Link</button>
+              <button type="button" onclick="setProofMode('file')" id="modeFile" class="proof-mode-btn">Upload</button>
+            </div>
+          </div>
+
+          <!-- Link Mode -->
+          <div id="proofLinkGroup">
+            <div class="form-group" style="margin-bottom:0">
+              <input type="url" id="s_proof" class="form-input"
+                placeholder="https://your-certificate-or-portfolio-link" />
+              <p class="upload-hint" style="margin-top:0.5rem">Provide a URL to your certificate, portfolio, or project.
+              </p>
+            </div>
+          </div>
+
+          <!-- File Mode -->
+          <div id="proofFileGroup" style="display:none">
+            <div id="dropZone" class="upload-zone" onclick="document.getElementById('s_proof_file').click()">
+              <div class="upload-icon">📁</div>
+              <div class="upload-text">Drag & drop or click to upload</div>
+              <p class="upload-hint">Accepted formats: PDF, JPG, PNG (Max 5MB)</p>
+              <input type="file" id="s_proof_file" name="proof_file" style="display:none"
+                onchange="handleFileSelect(this)" accept="image/*,.pdf" />
+            </div>
+
+            <div id="filePreview" class="file-preview-card" style="display:none">
+              <div class="preview-thumb" id="previewThumb">
+                <span class="preview-thumb-icon">📄</span>
+              </div>
+              <div class="preview-details">
+                <div class="preview-name" id="previewName">filename.pdf</div>
+                <div class="preview-meta" id="previewMeta">2.4 MB</div>
+              </div>
+              <div class="preview-actions">
+                <button type="button" class="btn btn-outline btn-icon"
+                  onclick="document.getElementById('s_proof_file').click()" title="Replace file">🔄</button>
+                <button type="button" class="btn btn-danger btn-icon" onclick="removeSelectedFile()"
+                  title="Remove file">✕</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:1rem">
+          <button onclick="wizardNext(2)" class="btn btn-outline">Back</button>
+          <button onclick="submitSkill(false)" class="btn btn-primary" id="submitSkillBtn">Submit & Publish</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK ADD MODAL -->
+  <div class="modal-overlay" id="quickAddModal">
+    <div class="modal" style="max-width: 400px;">
+      <div class="modal-header">
+        <div class="modal-title">⚡ Quick Add Skill</div>
+        <button class="modal-close" onclick="closeQuickAdd()">✕</button>
+      </div>
+      <div id="quickAlert" class="alert"></div>
+      <div class="form-group">
+        <label class="form-label">Skill Name *</label>
+        <input type="text" id="q_title" class="form-input" placeholder="e.g. Python Basics" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select id="q_category" class="form-select">
+          <option>Technology</option>
+          <option>Design</option>
+          <option>Business</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Level</label>
+        <select id="q_level" class="form-select">
+          <option>Beginner</option>
+          <option>Intermediate</option>
+          <option>Advanced</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.5rem">
+        <button onclick="closeQuickAdd()" class="btn btn-ghost">Cancel</button>
+        <button onclick="submitSkill(true)" class="btn btn-primary" id="quickAddBtn">Save Draft</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GUIDED STARTER MODAL -->
+  <div class="modal-overlay" id="guidedStarterModal">
+    <div class="modal" style="max-width: 500px; text-align: center;">
+      <div class="modal-header">
+        <div class="modal-title">🚀 Welcome to SkillSphere</div>
+        <button class="modal-close" onclick="closeGuidedStarter()">✕</button>
+      </div>
+      <div id="guidedContent">
+        <div class="step-num" style="margin-bottom:1.5rem">1/3</div>
+        <h3 style="font-family:var(--font-display);margin-bottom:1rem">Share your knowledge</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:2.25rem;line-height:1.7">
+          Posting your first skill is the first step to becoming a mentor.
+          It takes less than 2 minutes to get started!
+        </p>
+        <div class="trending-title" style="justify-content:center;margin-bottom:1.25rem">Popular to teach:</div>
+        <div class="trending-pills" style="justify-content:center;margin-bottom:2rem">
+          <button onclick="prefillAndStart('Java Programming')" class="trending-pill" style="cursor:pointer">Java
+            Programming</button>
+          <button onclick="prefillAndStart('UI Design')" class="trending-pill" style="cursor:pointer">UI Design</button>
+          <button onclick="prefillAndStart('Spoken English')" class="trending-pill" style="cursor:pointer">Spoken
+            English</button>
+          <button onclick="prefillAndStart('Python Basics')" class="trending-pill" style="cursor:pointer">Python
+            Basics</button>
+        </div>
+        <button onclick="openModal()" class="btn btn-primary" style="width:100%;justify-content:center">Start Detailed
+          Setup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REQUEST MENTOR MODAL -->
+  <div class="modal-overlay" id="mentorRequestModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">🚀 Request a Mentor</div>
+        <button class="modal-close" onclick="closeRequestModal()">✕</button>
+      </div>
+      <div id="requestAlert" class="alert"></div>
+      <p style="font-size:0.87rem;color:var(--text-secondary);margin-bottom:1.5rem">
+        Can't find what you're looking for? Post a request and mentors will see it!
+      </p>
+      <div class="form-group">
+        <label class="form-label">What skill do you want to learn? *</label>
+        <input type="text" id="r_skill_name" class="form-input"
+          placeholder="e.g. Advanced Python, Italian Cooking, Piano" />
+      </div>
+      <button onclick="submitMentorRequest()" class="btn btn-primary" style="width:100%;justify-content:center"
+        id="submitRequestBtn">
+        Post Learning Request
+      </button>
+    </div>
+  </div>
+
+  <!-- SUGGESTED MENTORS MODAL -->
+  <div class="modal-overlay" id="mentorSuggestionsModal">
+    <div class="modal" style="max-width: 900px; max-height: 85vh; overflow-y: auto;">
+      <div class="modal-header" style="position: sticky; top: 0; background: var(--bg-card, #fff); z-index: 10;">
+        <div class="modal-title">🤝 Relevant Mentors Found</div>
+        <button class="modal-close" onclick="closeSuggestionsModal()">✕</button>
+      </div>
+      <div style="padding: 1.5rem;">
+        <p style="color:var(--text-secondary); margin-bottom: 1.5rem">Based on your request, here are some mentors who can help you master this skill.</p>
+
+        <div id="suggestionsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;">
+          <!-- Suggestion cards will load here -->
+        </div>
+
+        <div id="noSuggestions" style="display:none; text-align:center; padding: 3rem 1rem;">
+          <div style="font-size:3rem; margin-bottom:1rem; opacity:0.3">🕵️</div>
+          <h3 style="font-family:var(--font-display); margin-bottom:0.5rem">No direct matches found</h3>
+          <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1.5rem">Try browsing all mentors manually to find a perfect fit.</p>
+          <button onclick="window.location='search.html'" class="btn btn-outline" style="justify-content:center">Explore Mentors</button>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:center; padding: 1rem; border-top: 1px solid rgba(0,0,0,0.06);">
+        <button onclick="closeSuggestionsModal()" class="btn btn-ghost">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="page-shell">
+    <div id="alert" class="alert"></div>
+
+    <!-- Main content full-width -->
+    <div style="width: 100%; max-width: 1200px; margin: 0 auto;">
+      <!-- Welcome Header -->
+      <div class="dash-welcome-bar">
+        <div>
+          <div class="dash-welcome-greeting">Welcome back, <span id="welcomeUserName"
+              style="color:var(--primary)">...</span> 👋</div>
+          <div class="dash-welcome-sub">Manage your skills, track learning requests, and connect with mentors.</div>
+        </div>
+      </div>
+
+      <!-- Main Dashboard Stats -->
+      <div class="stat-bar" id="statBar">
+        <div class="stat-item">
+          <div class="stat-item-num" id="statSkills">0</div>
+          <div class="stat-item-label">Skills Posted</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-item-num" id="statSent">0</div>
+          <div class="stat-item-label">Requests Sent</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-item-num" id="statConnections">0</div>
+          <div class="stat-item-label">Connections</div>
+        </div>
+      </div>
+
+      <!-- Quick Action Cards -->
+      <div class="quick-cards">
+        <div class="quick-card" onclick="openModal()">
+          <div class="quick-card-icon">✨</div>
+          <div>
+            <div class="quick-card-label">Teach a Skill</div>
+            <div class="quick-card-sub">Post &amp; get verified</div>
+          </div>
+        </div>
+        <div class="quick-card" onclick="openRequestModal()">
+          <div class="quick-card-icon">🚀</div>
+          <div>
+            <div class="quick-card-label">Request a Skill</div>
+            <div class="quick-card-sub">Find a new mentor</div>
+          </div>
+        </div>
+        <div class="quick-card" onclick="window.location='chat.html'">
+          <div class="quick-card-icon">💬</div>
+          <div>
+            <div class="quick-card-label">Open Chat</div>
+            <div class="quick-card-sub">Talk to connections</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-helper-strip">
+        <div class="dashboard-helper-card">
+          <div class="dashboard-helper-dot"></div>
+          <div>
+            <div class="dashboard-helper-title">Build trust faster</div>
+            <div class="dashboard-helper-sub">Add proof with each skill post so learners can discover you in verified
+              search.</div>
+          </div>
+        </div>
+        <div class="dashboard-helper-card">
+          <div class="dashboard-helper-dot"></div>
+          <div>
+            <div class="dashboard-helper-title">Get better matches</div>
+            <div class="dashboard-helper-sub">Use clear skill titles and your exact expertise level to improve mentor
+              matching.</div>
+          </div>
+        </div>
+        <div class="dashboard-helper-card">
+          <div class="dashboard-helper-dot"></div>
+          <div>
+            <div class="dashboard-helper-title">Move to chat quickly</div>
+            <div class="dashboard-helper-sub">Respond to mentorship requests early so accepted connections can start in
+              real-time chat.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- My Skills Management -->
+      <div class="dash-section-head" style="margin-top:2rem">
+        <div>
+          <div class="dash-section-title">My Skills</div>
+          <div class="dash-section-sub">Skills you've posted for learners to find</div>
+        </div>
+        <button onclick="openQuickAdd()" class="btn btn-primary btn-sm">+ Add Skill</button>
+      </div>
+
+      <div id="skillsContainer" style="margin-bottom: 2.5rem;">
+        <div class="spinner"></div>
+      </div>
+
+      <!-- Skills I'm Learning -->
+      <div class="dash-section-head">
+        <div>
+          <div class="dash-section-title">Skills I'm Learning</div>
+          <div class="dash-section-sub">Mentors you're currently learning from</div>
+        </div>
+        <a href="search.html" class="btn btn-outline btn-sm">Browse More</a>
+      </div>
+
+      <div id="learningContainer" style="margin-bottom: 2.5rem;">
+        <div class="spinner"></div>
+      </div>
+
+      <!-- Skills I Want to Learn -->
+      <div class="dash-section-head">
+        <div>
+          <div class="dash-section-title">Skills I Want to Learn</div>
+          <div class="dash-section-sub">Public requests for mentors to find you</div>
+        </div>
+        <button onclick="openRequestModal()" class="btn btn-outline btn-sm">+ New Request</button>
+      </div>
+
+      <div id="myRequestsContainer">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('ss_token');
+    if (!token) window.location.href = 'login.html';
+
+    function authHeader() {
+      return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+    }
+    function logout() {
+      localStorage.removeItem('ss_token');
+      localStorage.removeItem('ss_user');
+      window.location.href = 'index.html';
+    }
+
+    // Module-level set — accepted connections, used to gate Chat button
+    let _acceptedIds = new Set();
+    async function loadConnectedUsers() {
+      try {
+        const res = await fetch('/api/connections', { headers: authHeader() });
+        if (res.ok) {
+          const conns = await res.json();
+          // Deduplicate by partner_id — one unique partner = one connection
+          _acceptedIds = new Set(Array.isArray(conns) ? conns.map(x => String(x.partner_id)) : []);
+        }
+      } catch (_) {}
+    }
+
+    function openModal() {
+      document.getElementById('skillModal').classList.add('open');
+      wizardNext(1);
+    }
+    function closeModal() {
+      document.getElementById('skillModal').classList.remove('open');
+      document.getElementById('modalAlert').className = 'alert';
+      currentEditSkillId = null;
+      selectedFile = null;
+      removedExistingProof = false;
+      document.getElementById('s_proof_file').value = '';
+      document.getElementById('s_proof').value = '';
+      document.getElementById('dropZone').style.display = 'block';
+      document.getElementById('filePreview').style.display = 'none';
+      setSubmitButtonMode('create');
+    }
+    function openQuickAdd() { document.getElementById('quickAddModal').classList.add('open'); }
+    function closeQuickAdd() {
+      document.getElementById('quickAddModal').classList.remove('open');
+      document.getElementById('quickAlert').className = 'alert';
+    }
+    function openGuidedStarter() { document.getElementById('guidedStarterModal').classList.add('open'); }
+    function closeGuidedStarter() { document.getElementById('guidedStarterModal').classList.remove('open'); }
+
+    function wizardNext(step) {
+      [1, 2, 3].forEach(s => document.getElementById(`wizardStep${s}`).style.display = s === step ? 'block' : 'none');
+    }
+
+    // Nav Dropdown Logic
+    function toggleNavDropdown(id, e) {
+      if (e) e.preventDefault();
+      const el = document.getElementById(id);
+      const parent = el.parentElement;
+      const isOpen = parent.classList.contains('open');
+
+      document.querySelectorAll('.nav-item-dropdown').forEach(d => d.classList.remove('open'));
+      if (!isOpen) parent.classList.add('open');
+    }
+
+    window.addEventListener('click', e => {
+      if (!e.target.closest('.nav-item-dropdown')) {
+        document.querySelectorAll('.nav-item-dropdown').forEach(d => d.classList.remove('open'));
+      }
+    });
+
+    async function loadNavNotifications() {
+      try {
+        const res = await fetch('/api/auth/nav-notifications', { headers: authHeader() });
+        if (!res.ok) return;
+        const { requests, messages } = await res.json();
+
+        const reqBadge = document.getElementById('navRequestsBadge');
+        const reqBody = document.getElementById('navRequestsBody');
+        if (requests.length > 0) {
+          reqBadge.textContent = requests.length;
+          reqBadge.style.display = 'inline-flex';
+          reqBody.innerHTML = requests.map(r => `
+          <a href="requests.html" class="nav-notification-item">
+            <div class="nav-notif-avatar">${getInitials(r.name)}</div>
+            <div class="nav-notif-content">
+              <div class="nav-notif-title">${r.name}</div>
+              <div class="nav-notif-desc">Requested help with ${r.skill_title}</div>
+              <div class="nav-notif-time">${timeAgo(new Date(r.created_at))}</div>
+            </div>
+            <div class="nav-notif-dot"></div>
+          </a>
+        `).join('');
+        } else {
+          reqBadge.style.display = 'none';
+          reqBody.innerHTML = '<div class="nav-dropdown-empty">No pending requests.</div>';
+        }
+
+        const chatBadge = document.getElementById('navChatBadge');
+        const chatBody = document.getElementById('navChatBody');
+        if (messages.length > 0) {
+          chatBadge.textContent = messages.length;
+          chatBadge.style.display = 'inline-flex';
+          chatBody.innerHTML = messages.map(m => `
+          <a href="chat.html?user=${m.sender_id}&name=${encodeURIComponent(m.name)}" class="nav-notification-item">
+            <div class="nav-notif-avatar">${getInitials(m.name)}</div>
+            <div class="nav-notif-content">
+              <div class="nav-notif-title">${m.name}</div>
+              <div class="nav-notif-desc">${m.content}</div>
+              <div class="nav-notif-time">${timeAgo(new Date(m.created_at))}</div>
+            </div>
+            <div class="nav-notif-dot"></div>
+          </a>
+        `).join('');
+        } else {
+          chatBadge.style.display = 'none';
+          chatBody.innerHTML = '<div class="nav-dropdown-empty">No new messages.</div>';
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    function togglePriceInput(val) {
+      document.getElementById('priceValueGroup').style.display = (val === 'Paid' || val === 'Skill Exchange') ? 'block' : 'none';
+    }
+
+    function prefillAndStart(skill) {
+      document.getElementById('s_title').value = skill;
+      closeGuidedStarter();
+      openModal();
+    }
+
+    document.getElementById('skillModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+    document.getElementById('quickAddModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeQuickAdd(); });
+    document.getElementById('guidedStarterModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeGuidedStarter(); });
+
+    function showModalAlert(msg, type) {
+      const el = document.getElementById('modalAlert');
+      if (el) { el.textContent = msg; el.className = `alert alert-${type} show`; }
+      const qel = document.getElementById('quickAlert');
+      if (qel) { qel.textContent = msg; qel.className = `alert alert-${type} show`; }
+    }
+
+    let mySkillsCache = [];
+    let currentEditSkillId = null;
+    let selectedFile = null;
+    let proofMode = 'link';
+    let removedExistingProof = false;
+
+    function setSubmitButtonMode(mode) {
+      const btn = document.getElementById('submitSkillBtn');
+      const titleEl = document.querySelector('#skillModal .modal-title');
+      if (!btn) return;
+      if (mode === 'edit') {
+        btn.textContent = 'Save Changes';
+        if (titleEl) titleEl.textContent = 'Edit Skill';
+      } else {
+        btn.textContent = 'Submit & Publish';
+        if (titleEl) titleEl.textContent = '✨ Teach a Skill — Posting Wizard';
+      }
+    }
+
+    function openEditSkill(skillId) {
+      const s = mySkillsCache.find(x => String(x.id) === String(skillId));
+      if (!s) return;
+
+      currentEditSkillId = s.id;
+      setSubmitButtonMode('edit');
+      document.getElementById('skillModal').classList.add('open');
+      wizardNext(1);
+
+      // Step 1
+      document.getElementById('s_title').value = s.title || '';
+      document.getElementById('s_category').value = s.category || '';
+      document.getElementById('s_level').value = s.level || '';
+      document.getElementById('s_desc').value = s.description || '';
+
+      // Step 2
+      document.getElementById('s_mode').value = s.teaching_mode || 'Online';
+      document.getElementById('s_avail').value = s.availability || 'Both';
+      document.getElementById('s_price_type').value = s.price_type || 'Free';
+      togglePriceInput(document.getElementById('s_price_type').value);
+      document.getElementById('s_price_value').value = s.price_value || '';
+      document.getElementById('s_demo').value = (String(s.demo_session) === '1' || s.demo_session === true) ? 'true' : 'false';
+
+      // Step 3
+      document.getElementById('s_how').value = s.how_learned || '';
+      document.getElementById('s_duration').value = s.experience_duration || '';
+      document.getElementById('s_why').value = s.why_teach || '';
+
+      // Reset proof state
+      removedExistingProof = false;
+      selectedFile = null;
+      document.getElementById('s_proof_file').value = '';
+      document.getElementById('s_proof').value = '';
+
+      const hasProofFile = s.proof_file && String(s.proof_file).trim() !== '';
+      const hasProofLink = s.proof_link && String(s.proof_link).trim() !== '';
+
+      if (hasProofFile) {
+        setProofMode('file');
+
+        const filePreview = document.getElementById('filePreview');
+        const previewName = document.getElementById('previewName');
+        const previewMeta = document.getElementById('previewMeta');
+        const previewThumb = document.getElementById('previewThumb');
+
+        const fileUrl = s.proof_file.startsWith('/uploads/') ? s.proof_file : `/uploads/${s.proof_file}`;
+        const fileName = s.proof_file.split('/').pop();
+
+        previewName.textContent = fileName;
+        previewMeta.textContent = 'Saved Certificate';
+
+        const isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
+        if (isImg) {
+          previewThumb.innerHTML = `<img src="${fileUrl}" alt="Preview" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" />`;
+        } else {
+          previewThumb.innerHTML = '<span class="preview-thumb-icon">📄</span>';
+        }
+
+        document.getElementById('dropZone').style.display = 'none';
+        filePreview.style.display = 'flex';
+      } else if (hasProofLink) {
+        setProofMode('link');
+        document.getElementById('s_proof').value = s.proof_link;
+        document.getElementById('dropZone').style.display = 'block';
+        document.getElementById('filePreview').style.display = 'none';
+      } else {
+        setProofMode('link');
+        document.getElementById('dropZone').style.display = 'block';
+        document.getElementById('filePreview').style.display = 'none';
+      }
+    }
+
+    function setProofMode(mode) {
+      proofMode = mode;
+      document.getElementById('proofLinkGroup').style.display = mode === 'link' ? 'block' : 'none';
+      document.getElementById('proofFileGroup').style.display = mode === 'file' ? 'block' : 'none';
+      document.getElementById('modeLink').classList.toggle('active', mode === 'link');
+      document.getElementById('modeFile').classList.toggle('active', mode === 'file');
+    }
+
+    function handleFileSelect(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        if (file.size > 5 * 1024 * 1024) {
+          showModalAlert('File size too large. Please select a file under 5MB.', 'error');
+          input.value = '';
+          return;
+        }
+        selectedFile = file;
+        removedExistingProof = false;
+        displayFilePreview(file);
+      }
+    }
+
+    function displayFilePreview(file) {
+      const dropZone = document.getElementById('dropZone');
+      const filePreview = document.getElementById('filePreview');
+      const previewName = document.getElementById('previewName');
+      const previewMeta = document.getElementById('previewMeta');
+      const previewThumb = document.getElementById('previewThumb');
+
+      previewName.textContent = file.name;
+      previewMeta.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          previewThumb.innerHTML = `<img src="${e.target.result}" alt="Preview" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" />`;
+        };
+        reader.readAsDataURL(file);
+      } else {
+        previewThumb.innerHTML = '<span class="preview-thumb-icon">📄</span>';
+      }
+
+      dropZone.style.display = 'none';
+      filePreview.style.display = 'flex';
+    }
+
+    function removeSelectedFile() {
+      selectedFile = null;
+      removedExistingProof = true;
+      document.getElementById('s_proof_file').value = '';
+      document.getElementById('dropZone').style.display = 'block';
+      document.getElementById('filePreview').style.display = 'none';
+    }
+
+    function initDragAndDrop() {
+      const dz = document.getElementById('dropZone');
+      if (!dz) return;
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dz.addEventListener(eventName, e => {
+          e.preventDefault();
+          e.stopPropagation();
+        }, false);
+      });
+      dz.addEventListener('dragover', () => dz.classList.add('dragover'));
+      dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+      dz.addEventListener('drop', e => {
+        dz.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file) {
+          document.getElementById('s_proof_file').files = e.dataTransfer.files;
+          handleFileSelect(document.getElementById('s_proof_file'));
+        }
+      });
+    }
+
+    setTimeout(initDragAndDrop, 500);
+
+    function validateProofRelevance() {
+      if (proofMode === 'link') {
+        const link = document.getElementById('s_proof').value.trim();
+        if (link && !link.match(/^https?:\/\/.+/)) {
+          showModalAlert("Please enter a valid URL starting with http:// or https:// for your proof.", "error");
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function openRequestModal() { document.getElementById('mentorRequestModal').classList.add('open'); }
+    function closeRequestModal() {
+      document.getElementById('mentorRequestModal').classList.remove('open');
+      document.getElementById('requestAlert').className = 'alert';
+    }
+    document.getElementById('mentorRequestModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeRequestModal(); });
+    function openSuggestionsModal() { document.getElementById('mentorSuggestionsModal').classList.add('open'); }
+    function closeSuggestionsModal() { document.getElementById('mentorSuggestionsModal').classList.remove('open'); }
+    document.getElementById('mentorSuggestionsModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeSuggestionsModal(); });
+
+    function showRequestAlert(msg, type) {
+      const el = document.getElementById('requestAlert');
+      el.textContent = msg; el.className = `alert alert-${type} show`;
+    }
+
+    function showGlobalAlert(msg, type) {
+      const el = document.getElementById('alert');
+      el.textContent = msg; el.className = `alert alert-${type} show`;
+      setTimeout(() => { el.className = 'alert'; }, 5000);
+    }
+    function getInitials(name) {
+      if (!name) return '?';
+      return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+    function levelBadge(level) {
+      const map = { Beginner: 'badge-grey', Intermediate: 'badge-yellow', Advanced: 'badge-purple', Expert: 'badge-green' };
+      return `<span class="badge ${map[level] || 'badge-grey'}">${level}</span>`;
+    }
+    function verificationBadge(skill) {
+      const isVerified = skill?.is_verified || (skill?.proof_link && String(skill.proof_link).trim() !== '') || (skill?.proof_file && String(skill.proof_file).trim() !== '');
+      return isVerified ? '<span class="badge badge-green">✓ Verified</span>' : '';
+    }
+    function timeAgo(dateStr) {
+      const d = new Date(dateStr), now = new Date(), diff = Math.floor((now - d) / 1000);
+      if (diff < 60) return 'just now';
+      if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+      return `${Math.floor(diff / 86400)}d ago`;
+    }
+
+    async function loadProfile() {
+      const res = await fetch('/api/auth/me', { headers: authHeader() });
+      if (!res.ok) { logout(); return; }
+      const u = await res.json();
+      localStorage.setItem('ss_user', JSON.stringify(u));
+
+      if (document.getElementById('welcomeUserName')) {
+        document.getElementById('welcomeUserName').textContent = u.name;
+      }
+    }
+
+    async function loadSkills() {
+      const res = await fetch('/api/skills/mine', { headers: authHeader() });
+      const skills = await res.json();
+      mySkillsCache = Array.isArray(skills) ? skills : [];
+      
+      // Count only unique skills (title + category)
+      const uniqueSkills = new Set(
+        skills.map(s => `${s.title.toLowerCase().trim()}_${s.category}`)
+      );
+      const skillsCount = uniqueSkills.size;
+
+      if (document.getElementById('statSkills')) document.getElementById('statSkills').textContent = skillsCount;
+
+      const container = document.getElementById('skillsContainer');
+      if (!Array.isArray(skills) || skills.length === 0) {
+        container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">🎯</div>
+          <div class="empty-state-title">No skills posted yet</div>
+          <p class="empty-state-text">Ready to share your expertise? Follow our guided setup to post your first skill.</p>
+          <button onclick="openGuidedStarter()" class="btn btn-primary">+ Post Your First Skill</button>
+        </div>`;
+        return;
+      }f
+      container.innerHTML = `<div class="skills-grid">${skills.map(s => {
+        const proofUrl = s.proof_link
+          ? s.proof_link
+          : (s.proof_file ? (String(s.proof_file).startsWith('/uploads/') ? s.proof_file : `/uploads/${s.proof_file}`) : '');
+        return `
+      <div class="skill-card">
+        <div class="skill-card-header">
+          <div>
+            <div class="skill-card-title">${s.title}</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.15rem">${s.category} · ${timeAgo(s.created_at)}</div>
+          </div>
+          ${levelBadge(s.level)}
+        </div>
+        <div class="skill-card-body">${s.description}</div>
+        <div class="skill-card-footer">
+          ${verificationBadge(s)}
+          ${proofUrl ? `<a href="${proofUrl}" target="_blank" class="badge badge-purple" style="cursor:pointer">🔗 Proof</a>` : '<span></span>'}
+          <button onclick="openEditSkill(${s.id})" class="btn btn-outline btn-sm">Edit</button>
+        </div>
+      </div>
+    `;
+      }).join('')}</div>`;
+    }
+
+    async function loadLearningSkills() {
+      try {
+        const res = await fetch('/api/connections', { headers: authHeader() });
+        if (!res.ok) return;
+        const connections = await res.json();
+
+        const learnerConns = connections.filter(c => c.my_role === 'learner');
+
+        // Deduplicate by partner_id (keep first occurrence)
+        const uniqueMap = {};
+        learnerConns.forEach(c => {
+          if (!uniqueMap[c.partner_id]) uniqueMap[c.partner_id] = c;
+        });
+        const uniqueLearning = Object.values(uniqueMap);
+
+        const container = document.getElementById('learningContainer');
+
+        if (uniqueLearning.length === 0) {
+          container.innerHTML = `
+          <div class="empty-state" style="padding: 2.5rem 1rem;">
+            <div class="empty-state-icon">📚</div>
+            <div class="empty-state-title" style="font-size:1.1rem">Not learning anything yet</div>
+            <p class="empty-state-text" style="font-size:0.85rem">Find a mentor to start your learning journey and track your progress here.</p>
+            <a href="search.html" class="btn btn-outline btn-sm">Find a Mentor</a>
+          </div>`;
+          return;
+        }
+
+        // Fetch messages for each unique mentor and require BOTH sides have sent at least one message
+        const myId = String((JSON.parse(localStorage.getItem('ss_user') || '{}')).id || '');
+        const withMessages = await Promise.all(uniqueLearning.map(async c => {
+          try {
+            const msgRes = await fetch(`/api/messages/${c.partner_id}`, { headers: authHeader() });
+            if (!msgRes.ok) return null;
+            const msgs = await msgRes.json();
+            if (!Array.isArray(msgs) || msgs.length === 0) return null;
+            const mentorId = String(c.partner_id);
+            const iSent = msgs.some(m => String(m.sender_id) === myId && String(m.receiver_id) === mentorId);
+            const theySent = msgs.some(m => String(m.sender_id) === mentorId && String(m.receiver_id) === myId);
+            if (!iSent || !theySent) return null;
+            return c;
+          } catch (e) { return null; }
+        }));
+
+        const activeMentors = withMessages.filter(Boolean);
+
+        if (activeMentors.length === 0) {
+          container.innerHTML = `
+          <div class="empty-state" style="padding: 2.5rem 1rem;">
+            <div class="empty-state-icon">📚</div>
+            <div class="empty-state-title" style="font-size:1.1rem">Not learning anything yet</div>
+            <p class="empty-state-text" style="font-size:0.85rem">Find a mentor to start your learning journey and track your progress here.</p>
+            <a href="search.html" class="btn btn-outline btn-sm">Find a Mentor</a>
+          </div>`;
+          return;
+        }
+
+        container.innerHTML = `<div class="skills-grid">${activeMentors.map(c => `
+        <div class="skill-card">
+          <div class="skill-card-header">
+            <div>
+              <div class="skill-card-title">${c.skill_title || 'General Mentorship'}</div>
+              <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.15rem">Mentor: ${c.partner_name}</div>
+            </div>
+            <span class="badge badge-purple">Learning</span>
+          </div>
+          <div class="skill-card-body" style="font-size:0.84rem; font-style: italic; color: var(--text-muted);">
+            "${c.partner_bio ? c.partner_bio.substring(0, 80) + '...' : 'Connected and learning together.'}"
+          </div>
+          <div class="skill-card-footer">
+            <span style="font-size: 0.77rem; color: var(--text-muted);">Connected ${timeAgo(c.connected_at)}</span>
+            <a href="chat.html?user=${c.partner_id}&name=${encodeURIComponent(c.partner_name)}" class="btn btn-primary btn-sm">Chat with Mentor</a>
+          </div>
+        </div>
+      `).join('')}</div>`;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/auth/me', { headers: authHeader() });
+        if (!res.ok) return;
+        await res.json();
+
+        const [sentRes, receivedRes] = await Promise.all([
+          fetch('/api/requests/sent', { headers: authHeader() }),
+          fetch('/api/requests/received', { headers: authHeader() })
+        ]);
+        const sent = await sentRes.json();
+        const received = await receivedRes.json();
+        
+        const totalRequests = sent.length + received.length;
+        
+        const [connRes] = await Promise.all([
+          fetch('/api/connections', { headers: authHeader() })
+        ]);
+        const connections = await connRes.json();
+        
+        // Deduplicate by partner_id — one unique partner = one connection
+        const uniquePartners = new Set(
+          Array.isArray(connections) ? connections.map(c => String(c.partner_id)) : []
+        );
+        const connectionsCount = uniquePartners.size;
+
+        if (document.getElementById('statSent')) document.getElementById('statSent').textContent = totalRequests;
+        if (document.getElementById('statConnections')) document.getElementById('statConnections').textContent = connectionsCount;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function deleteSkill(id) {
+      if (!confirm('Remove this skill?')) return;
+      await fetch(`/api/skills/${id}`, { method: 'DELETE', headers: authHeader() });
+      loadSkills(); loadStats();
+    }
+
+    async function submitSkill(isQuick) {
+      const is_draft = isQuick;
+      const title = document.getElementById(isQuick ? 'q_title' : 's_title').value.trim();
+      const category = document.getElementById(isQuick ? 'q_category' : 's_category').value;
+      const level = document.getElementById(isQuick ? 'q_level' : 's_level').value;
+
+      const btn = document.getElementById(isQuick ? 'quickAddBtn' : 'submitSkillBtn');
+
+      if (!title) {
+        return showModalAlert('Skill title is required.', 'error');
+      }
+
+      if (!isQuick && !validateProofRelevance()) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        const formData = new FormData();
+
+        // Basic fields
+        formData.append('title', title);
+        formData.append('category', category);
+        formData.append('level', level);
+        formData.append('is_draft', is_draft ? 'true' : 'false');
+
+        if (!isQuick) {
+          formData.append('description', document.getElementById('s_desc').value.trim());
+          formData.append('how_learned', document.getElementById('s_how').value.trim());
+          formData.append('experience_duration', document.getElementById('s_duration').value.trim());
+          formData.append('why_teach', document.getElementById('s_why').value.trim());
+          formData.append('teaching_mode', document.getElementById('s_mode').value);
+          formData.append('availability', document.getElementById('s_avail').value);
+          formData.append('price_type', document.getElementById('s_price_type').value);
+          formData.append('price_value', document.getElementById('s_price_value').value.trim());
+          formData.append('demo_session', document.getElementById('s_demo').value);
+
+          if (proofMode === 'link') {
+            const proofLink = document.getElementById('s_proof').value.trim();
+            formData.append('proof_link', proofLink);
+
+            if (removedExistingProof) {
+              formData.append('proof_file_action', 'clear');
+            }
+
+          } else if (proofMode === 'file') {
+            const fileInput = document.getElementById('s_proof_file');
+            const existingSkill = currentEditSkillId
+              ? mySkillsCache.find(x => String(x.id) === String(currentEditSkillId))
+              : null;
+
+            if (fileInput && fileInput.files && fileInput.files.length > 0) {
+              const file = fileInput.files[0];
+              formData.append('proof_file', file);
+              console.log('Uploading file:', file.name, file.type, file.size);
+            } else if (existingSkill && existingSkill.proof_file && !removedExistingProof) {
+              formData.append('keep_existing_proof_file', existingSkill.proof_file);
+              console.log('Keeping existing proof file:', existingSkill.proof_file);
+            } else if (removedExistingProof) {
+              formData.append('proof_file_action', 'clear');
+              console.log('Clearing proof file');
+            }
+          }
+        }
+
+        const isEditing = (!isQuick && currentEditSkillId);
+        const url = isEditing ? `/api/skills/${currentEditSkillId}` : '/api/skills';
+        const method = isEditing ? 'PUT' : 'POST';
+
+        const res = await fetch(url, {
+          method: method,
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        let data;
+        const responseText = await res.text();
+
+        try {
+          data = JSON.parse(responseText);
+        } catch (err) {
+          console.error('Non-JSON response:', responseText);
+          throw new Error('Server returned HTML instead of JSON. Check backend route.');
+        }
+
+        console.log('Skill submit response:', data);
+
+        if (!res.ok) {
+          showModalAlert(data.error || 'Failed to submit skill.', 'error');
+          btn.disabled = false;
+          btn.textContent = isQuick ? 'Save Draft' : (currentEditSkillId ? 'Save Changes' : 'Submit & Publish');
+          return;
+        }
+
+        removedExistingProof = false;
+        selectedFile = null;
+
+        showModalAlert(data.message || 'Success!', 'success');
+
+        setTimeout(() => {
+          closeModal();
+          closeQuickAdd();
+          loadSkills();
+          loadStats();
+        }, 900);
+
+      } catch (e) {
+        console.error('Submission Error:', e);
+        showModalAlert('Network error during submission.', 'error');
+      }
+
+      btn.disabled = false;
+      btn.textContent = isQuick ? 'Save Draft' : (currentEditSkillId ? 'Save Changes' : 'Submit & Publish');
+    }
+
+    async function loadMyMentorRequests() {
+      try {
+        const res = await fetch('/api/mentor-requests/mine', { headers: authHeader() });
+        const requests = await res.json();
+        const container = document.getElementById('myRequestsContainer');
+        if (!Array.isArray(requests) || requests.length === 0) {
+          container.innerHTML = `
+          <div class="empty-state" style="padding: 2rem 1rem;">
+            <div class="empty-state-icon">🕯️</div>
+            <div class="empty-state-title" style="font-size:1rem">No search requests yet</div>
+            <p class="empty-state-text" style="font-size:0.8rem">Can't find a skill? Post a request and mentors will see it on the trending page.</p>
+            <button onclick="openRequestModal()" class="btn btn-outline btn-sm">Post a Request</button>
+          </div>`;
+          return;
+        }
+        container.innerHTML = `<div class="skills-grid" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));">${requests.map(r => `
+        <div class="skill-card" data-request-id="${r.id}" style="padding: 1.25rem;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <div class="skill-card-title" style="font-size:0.95rem;">${r.skill_name}</div>
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Posted ${timeAgo(r.created_at)}</div>
+            </div>
+            <button onclick="deleteMentorRequest(${r.id}, this)" class="btn btn-ghost btn-sm" style="color:var(--danger); padding:0.25rem;">✕</button>
+          </div>
+        </div>
+      `).join('')}</div>`;
+      } catch (e) { console.error(e); }
+    }
+
+    async function submitMentorRequest() {
+      const skill_name = document.getElementById('r_skill_name').value.trim();
+      const btn = document.getElementById('submitRequestBtn');
+      if (!skill_name) return showRequestAlert('Please enter a skill name.', 'error');
+      btn.disabled = true; btn.textContent = 'Posting...';
+      try {
+        const res = await fetch('/api/mentor-requests', {
+          method: 'POST', headers: authHeader(),
+          body: JSON.stringify({ skill_name })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showRequestAlert(data.error || 'Failed to post request.', 'error');
+          btn.disabled = false; btn.textContent = 'Post Learning Request'; return;
+        }
+        showRequestAlert('Request posted! Fetching suggestions...', 'success');
+
+        setTimeout(async () => {
+          closeRequestModal();
+          loadMyMentorRequests();
+          await fetchSuggestions(skill_name);
+        }, 700);
+
+        document.getElementById('r_skill_name').value = '';
+      } catch (e) { showRequestAlert('Network error.', 'error'); }
+      btn.disabled = false; btn.textContent = 'Post Learning Request';
+    }
+
+    async function fetchSuggestions(skill) {
+      try {
+        const res = await fetch(`/api/search/suggestions?skill=${encodeURIComponent(skill)}`, { headers: authHeader() });
+        const suggestions = await res.json();
+        const list = document.getElementById('suggestionsList');
+        const empty = document.getElementById('noSuggestions');
+
+        if (!Array.isArray(suggestions) || suggestions.length === 0) {
+          list.innerHTML = '';
+          empty.style.display = 'block';
+        } else {
+          empty.style.display = 'none';
+
+          // Group skills by mentor
+          const groupedByMentor = suggestions.reduce((groups, s) => {
+            const key = s.id;
+            if (!groups[key]) {
+              groups[key] = {
+                id: s.id,
+                name: s.name,
+                location: s.location,
+                bio: s.bio,
+                avatar_url: s.avatar_url,
+                last_seen: s.last_seen,
+                is_verified: s.is_verified,
+                skills: []
+              };
+            }
+            groups[key].skills.push({
+              skill_id: s.skill_id,
+              skill_title: s.skill_title,
+              category: s.category,
+              level: s.level,
+              status: s.status,
+              proof_link: s.proof_link,
+              proof_file: s.proof_file
+            });
+            return groups;
+          }, {});
+
+          // Load accepted + pending into module-level sets before rendering buttons
+          await loadConnectedUsers();
+
+          list.innerHTML = Object.values(groupedByMentor).map(mentor => {
+            // Avatar: image if available, otherwise initials
+            const avatarHtml = mentor.avatar_url
+              ? `<img src="${mentor.avatar_url}" alt="${mentor.name}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
+              : `<div class="avatar" style="width:44px;height:44px;font-size:0.9rem;flex-shrink:0;">${getInitials(mentor.name)}</div>`;
+
+            // Skill list — titles + badges only, no connect button
+            const skillRows = mentor.skills.map(skill => `
+              <div style="border-top:1px solid var(--border-light, rgba(0,0,0,0.07)); padding-top:0.75rem; margin-top:0.75rem;">
+                <div style="font-weight:600; font-size:0.9rem; margin-bottom:0.3rem; color:var(--text-primary);">${skill.skill_title}</div>
+                <div style="display:flex; gap:0.4rem; flex-wrap:wrap; align-items:center;">
+                  <span class="badge badge-grey">${skill.category}</span>
+                  ${levelBadge(skill.level)}
+                </div>
+              </div>`).join('');
+
+            // Chat is only enabled for accepted connections
+            const isConnected = _acceptedIds.has(String(mentor.id));
+            const chatBtn = isConnected
+              ? `<a href="chat.html?user=${mentor.id}&name=${encodeURIComponent(mentor.name)}" class="btn btn-primary btn-sm" style="flex:1; justify-content:center;">Chat Now</a>`
+              : `<button class="btn btn-primary btn-sm" style="flex:1; justify-content:center;" disabled title="Connect with this mentor to chat">Chat Now</button>`;
+
+            return `
+              <div class="skill-card" style="padding:1.4rem; display:flex; flex-direction:column; gap:0;">
+                <!-- Mentor header: avatar + name + location + verified -->
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
+                  ${avatarHtml}
+                  <div style="min-width:0;">
+                    <div style="font-weight:700; font-size:0.95rem; display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap; color:var(--text-primary);">
+                      <span>${mentor.name}</span>
+                      ${mentor.is_verified ? '<span class="badge badge-green">✓ Verified</span>' : ''}
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.1rem;">
+                      📍 ${mentor.location || 'Remote'}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Matching skills -->
+                <div style="margin-bottom:0.85rem;">
+                  ${skillRows}
+                </div>
+
+                <!-- Bottom action row: View Profile + Chat Now -->
+                <div style="display:flex; gap:0.5rem; margin-top:auto;">
+                  <a href="profile.html?userId=${mentor.id}" class="btn btn-outline btn-sm" style="flex:1; justify-content:center;">View Profile</a>
+                  ${chatBtn}
+                </div>
+              </div>`;
+          }).join('');
+        }
+
+        openSuggestionsModal();
+      } catch (e) { console.error(e); }
+    }
+
+    async function deleteMentorRequest(id, btn) {
+      if (btn) { btn.disabled = true; btn.textContent = '…'; }
+      try {
+        const res = await fetch(`/api/mentor-requests/${id}`, { method: 'DELETE', headers: authHeader() });
+        if (!res.ok) {
+          if (btn) { btn.disabled = false; btn.textContent = '✕'; }
+          return;
+        }
+        // Remove card from DOM immediately
+        const card = document.querySelector(`.skill-card[data-request-id="${id}"]`);
+        if (card) {
+          const grid = card.parentElement;
+          card.remove();
+          // If grid is now empty, show empty state
+          if (grid && grid.querySelectorAll('.skill-card').length === 0) {
+            const container = document.getElementById('myRequestsContainer');
+            container.innerHTML = `
+            <div class="empty-state" style="padding: 2rem 1rem;">
+              <div class="empty-state-icon">🕯️</div>
+              <div class="empty-state-title" style="font-size:1rem">No search requests yet</div>
+              <p class="empty-state-text" style="font-size:0.8rem">Can't find a skill? Post a request and mentors will see it on the trending page.</p>
+              <button onclick="openRequestModal()" class="btn btn-outline btn-sm">Post a Request</button>
+            </div>`;
+          }
+        }
+        // Update statSent count
+        const statEl = document.getElementById('statSent');
+        if (statEl) {
+          const current = parseInt(statEl.textContent, 10) || 0;
+          statEl.textContent = Math.max(0, current - 1);
+        }
+      } catch (e) {
+        if (btn) { btn.disabled = false; btn.textContent = '✕'; }
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      await loadConnectedUsers();
+      loadProfile();
+      loadSkills();
+      loadStats();
+      loadLearningSkills();
+      loadMyMentorRequests();
+      loadNavNotifications();
+    });
+  </script>
+</body>
+
+</html>

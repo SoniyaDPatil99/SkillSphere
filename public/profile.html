@@ -1,0 +1,2037 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile — SkillSphere</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --sora: 'Sora', sans-serif;
+      --dm: 'DM Sans', sans-serif;
+      --indigo: #4f46e5;
+      --indigo-light: #6366f1;
+      --indigo-faint: rgba(79, 70, 229, 0.06);
+      --indigo-border: rgba(79, 70, 229, 0.18);
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --sky: #0ea5e9;
+      --violet: #7c3aed;
+      --bg-page: #f4f5f7;
+      --bg-card: #ffffff;
+      --border: #e5e7eb;
+      --border-light: #f0f0f2;
+      --text-primary: #111827;
+      --text-secondary: #374151;
+      --text-muted: #6b7280;
+      --text-subtle: #9ca3af;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+      --radius-xl: 18px;
+      --radius-lg: 13px;
+      --radius-md: 9px;
+      --radius-sm: 6px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--dm);
+      background: var(--bg-page);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .profile-shell {
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+
+    /* HERO */
+    .hero-banner {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    .hero-cover {
+      height: 160px;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #ede9fe 0%, #dbeafe 50%, #e0f2fe 100%);
+    }
+
+    .hero-cover-inner {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 70% 100% at 15% 60%, rgba(99, 102, 241, 0.22) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 80% at 80% 20%, rgba(124, 58, 237, 0.14) 0%, transparent 65%),
+        radial-gradient(ellipse 40% 60% at 55% 90%, rgba(14, 165, 233, 0.12) 0%, transparent 55%);
+    }
+
+    .hero-cover-inner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(99, 102, 241, 0.12) 1.5px, transparent 1.5px);
+      background-size: 26px 26px;
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.15) 80%, transparent);
+    }
+
+    .hero-body {
+      padding: 0 2rem 1.5rem;
+      display: flex;
+      align-items: flex-end;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .avatar-wrap {
+      position: relative;
+      margin-top: -50px;
+      flex-shrink: 0;
+    }
+
+    .avatar-ring {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--indigo), var(--violet));
+      padding: 3px;
+      box-shadow: 0 0 0 4px #ffffff, 0 4px 16px rgba(79, 70, 229, 0.25);
+    }
+
+    .avatar-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--sora);
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--indigo);
+      overflow: hidden;
+    }
+
+    .avatar-inner img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .avatar-upload-btn {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--indigo);
+      border: 2px solid #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.65rem;
+      color: #fff;
+      transition: background 0.2s, transform 0.15s;
+      z-index: 2;
+    }
+
+    .avatar-upload-btn:hover {
+      background: var(--indigo-light);
+      transform: scale(1.1);
+    }
+
+    .hero-info {
+      flex: 1;
+      padding-bottom: 0.15rem;
+      min-width: 0;
+    }
+
+    .hero-badges {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .role-badge {
+      font-family: var(--sora);
+      font-size: 0.67rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.22rem 0.6rem;
+      border-radius: 100px;
+      border: 1px solid;
+    }
+
+    .role-badge.mentor {
+      color: #7c3aed;
+      border-color: rgba(124, 58, 237, 0.25);
+      background: rgba(124, 58, 237, 0.07);
+    }
+
+    .role-badge.learner {
+      color: #059669;
+      border-color: rgba(5, 150, 105, 0.25);
+      background: rgba(5, 150, 105, 0.07);
+    }
+
+    .role-badge.verified {
+      color: #2563eb;
+      border-color: rgba(37, 99, 235, 0.22);
+      background: rgba(37, 99, 235, 0.07);
+    }
+
+    .hero-name {
+      font-family: var(--sora);
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 0.3rem;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    .hero-bio {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.65;
+      max-width: 520px;
+      margin-bottom: 0.75rem;
+    }
+
+    .hero-meta {
+      display: flex;
+      gap: 1.1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .meta-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .meta-chip-icon {
+      font-size: 0.78rem;
+      opacity: 0.7;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-shrink: 0;
+      padding-bottom: 0.15rem;
+    }
+
+    .hero-completion {
+      margin: 0 2rem 1.5rem;
+      background: #f8f9ff;
+      border: 1px solid rgba(99, 102, 241, 0.12);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .completion-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      white-space: nowrap;
+    }
+
+    .completion-track {
+      flex: 1;
+      height: 5px;
+      background: #e5e7eb;
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .completion-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--indigo), var(--violet));
+      width: 0%;
+      transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 100px;
+    }
+
+    .completion-pct {
+      font-family: var(--sora);
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--indigo);
+      white-space: nowrap;
+    }
+
+    /* STATS */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.85rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.1rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      transition: border-color 0.2s, transform 0.18s, box-shadow 0.2s;
+      cursor: default;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat-card:hover {
+      border-color: var(--indigo-border);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .stat-icon.indigo {
+      background: rgba(99, 102, 241, 0.1);
+    }
+
+    .stat-icon.emerald {
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    .stat-icon.sky {
+      background: rgba(14, 165, 233, 0.1);
+    }
+
+    .stat-icon.violet {
+      background: rgba(124, 58, 237, 0.1);
+    }
+
+    .stat-val {
+      font-family: var(--sora);
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1;
+      margin-bottom: 0.15rem;
+    }
+
+    .stat-lab {
+      font-size: 0.72rem;
+      color: var(--text-subtle);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* GRID */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 1.1rem;
+      align-items: start;
+    }
+
+    /* SECTION CARD */
+    .section-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 1.1rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .section-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .section-title {
+      font-family: var(--sora);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-title-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+    }
+
+    .section-body {
+      padding: 1.1rem 1.25rem;
+    }
+
+    /* SKILLS */
+    .skill-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.9rem;
+      padding: 0.9rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-light);
+      background: #fafafa;
+      margin-bottom: 0.65rem;
+      transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
+    }
+
+    .skill-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .skill-item:hover {
+      border-color: var(--indigo-border);
+      background: var(--indigo-faint);
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.07);
+    }
+
+    .skill-item-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background: rgba(99, 102, 241, 0.08);
+      border: 1px solid rgba(99, 102, 241, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .skill-item-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .skill-item-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
+      flex-wrap: wrap;
+    }
+
+    .skill-item-name {
+      font-family: var(--sora);
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .skill-item-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+      margin-bottom: 0.5rem;
+    }
+
+    .skill-item-tags {
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+
+    /* BADGES */
+    .px-badge {
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 0.18rem 0.5rem;
+      border-radius: 100px;
+      letter-spacing: 0.03em;
+    }
+
+    .px-badge.grey {
+      background: #f3f4f6;
+      color: #6b7280;
+      border: 1px solid #e5e7eb;
+    }
+
+    .px-badge.indigo {
+      background: rgba(99, 102, 241, 0.08);
+      color: #4f46e5;
+      border: 1px solid rgba(99, 102, 241, 0.18);
+    }
+
+    .px-badge.green {
+      background: rgba(16, 185, 129, 0.08);
+      color: #059669;
+      border: 1px solid rgba(16, 185, 129, 0.18);
+    }
+
+    .px-badge.amber {
+      background: rgba(245, 158, 11, 0.08);
+      color: #d97706;
+      border: 1px solid rgba(245, 158, 11, 0.18);
+    }
+
+    .px-badge.purple {
+      background: rgba(124, 58, 237, 0.08);
+      color: #7c3aed;
+      border: 1px solid rgba(124, 58, 237, 0.18);
+    }
+
+    .px-badge.sky {
+      background: rgba(14, 165, 233, 0.08);
+      color: #0284c7;
+      border: 1px solid rgba(14, 165, 233, 0.18);
+    }
+
+    /* INTERESTS */
+    .interest-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .interest-pill-new {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.42rem 0.8rem;
+      border-radius: 100px;
+      background: rgba(99, 102, 241, 0.06);
+      border: 1px solid rgba(99, 102, 241, 0.16);
+      color: var(--indigo);
+      transition: background 0.18s, border-color 0.18s;
+      cursor: default;
+    }
+
+    .interest-pill-new:hover {
+      background: rgba(99, 102, 241, 0.12);
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    /* EMPTY STATE */
+    .empty-state {
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+
+    .empty-icon {
+      font-size: 1.75rem;
+      margin-bottom: 0.6rem;
+      opacity: 0.35;
+    }
+
+    .empty-title {
+      font-family: var(--sora);
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 0.3rem;
+    }
+
+    .empty-sub {
+      font-size: 0.77rem;
+      color: var(--text-subtle);
+      line-height: 1.55;
+    }
+
+    /* SIDEBAR INFO */
+    .sidebar-info-row {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.65rem 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .sidebar-info-row:last-child {
+      border-bottom: none;
+    }
+
+    .sidebar-info-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+    }
+
+    .sidebar-info-label {
+      font-size: 0.7rem;
+      color: var(--text-subtle);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.08rem;
+    }
+
+    .sidebar-info-val {
+      font-size: 0.83rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    /* CHECKLIST */
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .checklist-item:last-child {
+      border-bottom: none;
+    }
+
+    .check-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.6rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .check-dot.done {
+      background: rgba(16, 185, 129, 0.1);
+      color: #059669;
+      border: 1.5px solid rgba(5, 150, 105, 0.25);
+    }
+
+    .check-dot.warn {
+      background: rgba(245, 158, 11, 0.1);
+      color: #d97706;
+      border: 1.5px solid rgba(245, 158, 11, 0.25);
+    }
+
+    .check-dot.todo {
+      background: #f3f4f6;
+      color: #9ca3af;
+      border: 1.5px solid #e5e7eb;
+    }
+
+    .checklist-text {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* TIPS */
+    .tip-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      padding: 0.75rem;
+      border-radius: var(--radius-md);
+      background: #fafafa;
+      border: 1px solid var(--border-light);
+      margin-bottom: 0.55rem;
+      transition: background 0.18s, border-color 0.18s;
+    }
+
+    .tip-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .tip-card:hover {
+      background: var(--indigo-faint);
+      border-color: var(--indigo-border);
+    }
+
+    .tip-card-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .tip-card-text {
+      font-size: 0.79rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .tip-card-text strong {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.12rem;
+      font-weight: 600;
+    }
+
+    /* ACTIVITY */
+    .activity-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      padding: 0.85rem 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .activity-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .activity-item:first-child {
+      padding-top: 0;
+    }
+
+    .activity-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.82rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .activity-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .activity-title {
+      font-size: 0.83rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 0.15rem;
+      line-height: 1.4;
+    }
+
+    .activity-title strong {
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .activity-meta {
+      font-size: 0.75rem;
+      color: var(--text-subtle);
+    }
+
+    /* SKILL SUMMARY BARS */
+    .skill-bar-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .skill-bar-item:last-child {
+      border-bottom: none;
+    }
+
+    .skill-bar-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      width: 110px;
+      flex-shrink: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .skill-bar-track {
+      flex: 1;
+      height: 5px;
+      background: #f0f0f2;
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .skill-bar-fill {
+      height: 100%;
+      border-radius: 100px;
+      background: linear-gradient(90deg, var(--indigo), var(--violet));
+      transition: width 1s ease;
+    }
+
+    .skill-bar-level {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-subtle);
+      width: 72px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* BUTTONS */
+    .btn-primary-new {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: var(--dm);
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: #fff;
+      background: var(--indigo);
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      transition: background 0.18s, transform 0.15s, box-shadow 0.18s;
+      white-space: nowrap;
+    }
+
+    .btn-primary-new:hover {
+      background: var(--indigo-light);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-outline-new {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: var(--dm);
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      transition: border-color 0.18s, background 0.18s, color 0.18s;
+      white-space: nowrap;
+    }
+
+    .btn-outline-new:hover {
+      border-color: var(--indigo-border);
+      color: var(--indigo);
+      background: var(--indigo-faint);
+    }
+
+    .btn-ghost-sm {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.77rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.35rem 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-ghost-sm:hover {
+      color: var(--text-primary);
+      border-color: #9ca3af;
+      background: #f9fafb;
+    }
+
+    /* UPLOAD MODAL */
+    .upload-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.45);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .upload-modal-overlay.open {
+      display: flex;
+    }
+
+    .upload-modal {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 1.75rem;
+      width: 90%;
+      max-width: 420px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .upload-modal-title {
+      font-family: var(--sora);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .upload-dropzone {
+      border: 2px dashed rgba(99, 102, 241, 0.3);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem 1.25rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 1rem;
+      background: #fafafa;
+    }
+
+    .upload-dropzone:hover,
+    .upload-dropzone.drag-over {
+      border-color: var(--indigo);
+      background: var(--indigo-faint);
+    }
+
+    .upload-preview-img {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 0 auto 0.9rem;
+      display: block;
+      border: 3px solid var(--indigo);
+    }
+
+    .upload-dropzone-text {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .upload-dropzone-text strong {
+      color: var(--indigo);
+      font-weight: 600;
+    }
+
+    .upload-actions {
+      display: flex;
+      gap: 0.55rem;
+    }
+
+    /* ALERT */
+    .alert {
+      display: none;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+
+    .alert.show {
+      display: block;
+    }
+
+    .alert-error {
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    .alert-success {
+      background: #f0fdf4;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+
+    /* SPINNER */
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid #e5e7eb;
+      border-top-color: var(--indigo);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: block;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .px-divider {
+      height: 1px;
+      background: var(--border-light);
+      margin: 0.65rem 0;
+    }
+
+    .sidebar-sticky {
+      position: sticky;
+      top: 1.25rem;
+    }
+
+    #avatarFileInput {
+      display: none;
+    }
+
+    .modal-overlay {
+      z-index: 999;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .hero-body {
+        gap: 1rem;
+        padding: 0 1.25rem 1.25rem;
+        flex-wrap: wrap;
+      }
+
+      .hero-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .hero-completion {
+        margin: 0 1.25rem 1.25rem;
+      }
+
+      .sidebar-sticky {
+        position: static;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .profile-shell {
+        padding: 1rem 0.75rem 3rem;
+      }
+
+      .hero-name {
+        font-size: 1.3rem;
+      }
+
+      .stats-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.65rem;
+      }
+
+      .hero-cover {
+        height: 120px;
+      }
+
+      .avatar-ring {
+        width: 86px;
+        height: 86px;
+      }
+
+      .avatar-inner {
+        font-size: 1.5rem;
+      }
+
+      .avatar-wrap {
+        margin-top: -43px;
+      }
+
+      .hero-body {
+        padding: 0 1rem 1rem;
+      }
+
+      .hero-completion {
+        margin: 0 1rem 1rem;
+      }
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #profileContent {
+      animation: fadeUp 0.35s ease both;
+    }
+
+    .stat-card {
+      animation: fadeUp 0.35s ease both;
+    }
+
+    .stat-card:nth-child(1) {
+      animation-delay: 0.04s;
+    }
+
+    .stat-card:nth-child(2) {
+      animation-delay: 0.09s;
+    }
+
+    .stat-card:nth-child(3) {
+      animation-delay: 0.14s;
+    }
+
+    .stat-card:nth-child(4) {
+      animation-delay: 0.19s;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAV (unchanged) -->
+  <nav class="nav">
+    <div class="nav-logo">SkillSphere</div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="search.html">Explore</a></li>
+      <li class="nav-item-dropdown" id="navRequestsItem">
+        <a href="#" onclick="toggleNavDropdown('navRequestsDropdown', event)">Requests <span class="nav-badge"
+            id="navRequestsBadge" style="display:none">0</span></a>
+        <div class="nav-dropdown-panel" id="navRequestsDropdown">
+          <div class="nav-dropdown-header">Incoming Requests</div>
+          <div class="nav-dropdown-body" id="navRequestsBody">
+            <div class="nav-dropdown-empty">No pending requests.</div>
+          </div>
+          <a href="requests.html" class="nav-dropdown-footer">View All Requests</a>
+        </div>
+      </li>
+      <li><a href="connections.html">Connections</a></li>
+      <li class="nav-item-dropdown" id="navChatItem">
+        <a href="#" onclick="toggleNavDropdown('navChatDropdown', event)">Chat <span class="nav-badge" id="navChatBadge"
+            style="display:none">0</span></a>
+        <div class="nav-dropdown-panel" id="navChatDropdown">
+          <div class="nav-dropdown-header">Unread Messages</div>
+          <div class="nav-dropdown-body" id="navChatBody">
+            <div class="nav-dropdown-empty">No new messages.</div>
+          </div>
+          <a href="chat.html" class="nav-dropdown-footer">Open Messages</a>
+        </div>
+      </li>
+      <li><a href="profile.html" class="active">Profile</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button onclick="logout()" class="btn btn-ghost btn-sm">Log out</button>
+    </div>
+  </nav>
+
+  <!-- EDIT PROFILE MODAL (unchanged API) -->
+  <div class="modal-overlay" id="editProfileModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">✏️ Edit Profile</div>
+        <button class="modal-close" onclick="closeEditProfile()">✕</button>
+      </div>
+      <div id="editProfileAlert" class="alert"></div>
+      <div class="form-group">
+        <label class="form-label">Full Name *</label>
+        <input type="text" id="edit_name" class="form-input" placeholder="Your full name" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Location</label>
+        <input type="text" id="edit_location" class="form-input" placeholder="Your city, country" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bio</label>
+        <textarea id="edit_bio" class="form-textarea" rows="3" placeholder="Tell us about yourself..."></textarea>
+      </div>
+      <button onclick="saveProfile()" class="btn btn-primary" style="width:100%;justify-content:center"
+        id="saveProfileBtn">Save Changes</button>
+    </div>
+  </div>
+
+  <!-- PHOTO UPLOAD MODAL -->
+  <div class="upload-modal-overlay" id="photoUploadModal">
+    <div class="upload-modal">
+      <div class="upload-modal-title"><span>🖼️</span> Update Profile Photo</div>
+
+      <div class="upload-dropzone" id="uploadDropzone" onclick="document.getElementById('avatarFileInput').click()">
+        <img id="uploadPreview" class="upload-preview-img" style="display:none" src="" alt="Preview" />
+        <div id="uploadDropzoneInner">
+          <div style="font-size:1.75rem;margin-bottom:0.65rem;opacity:0.35">📷</div>
+          <div class="upload-dropzone-text">
+            <strong>Click to choose photo</strong><br>
+            JPG, PNG or WebP · Max 5 MB
+          </div>
+        </div>
+      </div>
+
+      <input type="file" id="avatarFileInput" accept="image/*" onchange="handleAvatarFile(event)" />
+      <div id="uploadAlert" class="alert" style="margin-bottom:0.75rem;"></div>
+
+      <div class="upload-actions">
+        <button class="btn-primary-new" id="savePhotoBtn" onclick="uploadAvatar()"
+          style="flex:1;justify-content:center">Save Photo</button>
+        <button class="btn-outline-new" id="removePhotoBtn" onclick="removeAvatar()"
+          style="display:none">Remove</button>
+        <button class="btn-ghost-sm" onclick="closePhotoModal()">Back</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN PAGE -->
+  <div class="profile-shell">
+
+    <div id="alert" class="alert"></div>
+    <div id="profileLoading" class="spinner" style="margin: 5rem auto;"></div>
+
+    <div id="profileContent" style="display:none">
+
+      <!-- HERO BANNER -->
+      <div class="hero-banner">
+        <div class="hero-cover">
+          <div class="hero-cover-inner"></div>
+        </div>
+
+        <div class="hero-body">
+          <div class="avatar-wrap">
+            <div class="avatar-ring">
+              <div class="avatar-inner" id="p_avatar">?</div>
+            </div>
+            <button class="avatar-upload-btn" id="avatarUploadBtn" title="Change photo" onclick="openPhotoModal()"
+              style="display:none">✏️</button>
+          </div>
+
+          <div class="hero-info">
+            <div class="hero-badges">
+              <span class="role-badge mentor">Mentor</span>
+              <span class="role-badge learner">Learner</span>
+              <span class="role-badge verified" id="verifiedBadge" style="display:none">✓ Verified</span>
+            </div>
+            <div class="hero-name" id="p_name">Loading…</div>
+            <div class="hero-bio" id="p_bio">No bio provided.</div>
+            <div class="hero-meta">
+              <div class="meta-chip" id="p_location"><span class="meta-chip-icon">📍</span><span>Unknown</span></div>
+              <div class="meta-chip" id="p_joined"><span class="meta-chip-icon">📅</span><span>Joined …</span></div>
+              <div class="meta-chip" id="p_email_chip" style="display:none"><span class="meta-chip-icon">✉️</span><span
+                  id="p_email_val"></span></div>
+            </div>
+          </div>
+
+          <div class="hero-actions">
+            <div id="selfActions" style="display:none">
+              <button onclick="openEditProfile()" class="btn-primary-new">✏️ Edit Profile</button>
+            </div>
+            <div id="otherActions" style="display:none; gap:0.6rem; align-items:center;">
+              <button id="p_connect_btn" class="btn-primary-new">Connect</button>
+              <button id="p_chat_btn" class="btn-outline-new">Message</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-completion">
+          <span class="completion-label">Profile Strength</span>
+          <div class="completion-track">
+            <div class="completion-fill" id="p_completeness_bar"></div>
+          </div>
+          <span class="completion-pct" id="p_completeness_val">0%</span>
+        </div>
+      </div>
+
+      <!-- STATS ROW -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon indigo">🎯</div>
+          <div class="stat-body">
+            <div class="stat-val" id="stat_skills">0</div>
+            <div class="stat-lab">Skills Offered</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon emerald">📚</div>
+          <div class="stat-body">
+            <div class="stat-val" id="stat_requests">0</div>
+            <div class="stat-lab">Skills Wanted</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon sky">🤝</div>
+          <div class="stat-body">
+            <div class="stat-val" id="stat_connections">0</div>
+            <div class="stat-lab">Connections</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon violet">📎</div>
+          <div class="stat-body">
+            <div class="stat-val" id="stat_proofs">0</div>
+            <div class="stat-lab">Proof Links</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTENT GRID -->
+      <div class="content-grid">
+
+        <!-- LEFT COLUMN -->
+        <div>
+
+          <!-- Skills I Offer -->
+          <div class="section-card">
+            <div class="section-head">
+              <div class="section-title">
+                <div class="section-title-icon" style="background:rgba(99,102,241,0.1)">🎯</div>
+                Skills I Offer
+              </div>
+              <span id="skills_count_badge" class="px-badge indigo" style="display:none"></span>
+            </div>
+            <div class="section-body" id="expertiseList">
+              <div class="empty-state">
+                <div class="empty-icon">🎯</div>
+                <div class="empty-title">No skills posted yet</div>
+                <div class="empty-sub">Add your expertise to start connecting<br>with people who want to learn from you.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Skill Summary (shown only when skills exist) -->
+          <div class="section-card" id="skillSummaryCard" style="display:none">
+            <div class="section-head">
+              <div class="section-title">
+                <div class="section-title-icon" style="background:rgba(124,58,237,0.1)">📊</div>
+                Skill Summary
+              </div>
+            </div>
+            <div class="section-body" id="skillSummaryList"></div>
+          </div>
+
+          <!-- Learning Interests -->
+          <div class="section-card">
+            <div class="section-head">
+              <div class="section-title">
+                <div class="section-title-icon" style="background:rgba(16,185,129,0.1)">📚</div>
+                Learning Interests
+              </div>
+              <span id="requests_count_badge" class="px-badge green" style="display:none"></span>
+            </div>
+            <div class="section-body" id="interestsList">
+              <div class="empty-state">
+                <div class="empty-icon">📚</div>
+                <div class="empty-title">No learning interests listed</div>
+                <div class="empty-sub">What do you want to learn next?<br>Post a request and find the right mentor.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity -->
+          <div class="section-card">
+            <div class="section-head">
+              <div class="section-title">
+                <div class="section-title-icon" style="background:rgba(14,165,233,0.1)">⚡</div>
+                Activity
+              </div>
+            </div>
+            <div class="section-body" id="activityList">
+              <div class="empty-state">
+                <div class="empty-icon">⚡</div>
+                <div class="empty-title">No recent activity</div>
+                <div class="empty-sub">Interactions and updates will appear here.</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT SIDEBAR -->
+        <div class="sidebar-sticky">
+
+          <!-- About (single, no duplicate) -->
+          <div class="section-card">
+            <div class="section-head">
+              <div class="section-title">
+                <div class="section-title-icon" style="background:#f3f4f6">ℹ️</div>
+                About
+              </div>
+            </div>
+            <div class="section-body">
+              <div class="sidebar-info-row">
+                <div class="sidebar-info-icon" style="background:rgba(99,102,241,0.08)">📍</div>
+                <div>
+                  <div class="sidebar-info-label">Location</div>
+                  <div class="sidebar-info-val" id="sidebar_location">—</div>
+                </div>
+              </div>
+              <div class="sidebar-info-row">
+                <div class="sidebar-info-icon" style="background:rgba(16,185,129,0.08)">📅</div>
+                <div>
+                  <div class="sidebar-info-label">Member Since</div>
+                  <div class="sidebar-info-val" id="sidebar_joined">—</div>
+                </div>
+              </div>
+              <div class="sidebar-info-row">
+                <div class="sidebar-info-icon" style="background:rgba(245,158,11,0.08)">🌐</div>
+                <div>
+                  <div class="sidebar-info-label">Preferred Mode</div>
+                  <div class="sidebar-info-val">Online &amp; Offline</div>
+                </div>
+              </div>
+              <div class="sidebar-info-row">
+                <div class="sidebar-info-icon" style="background:rgba(14,165,233,0.08)">💬</div>
+                <div>
+                  <div class="sidebar-info-label">Languages</div>
+                  <div class="sidebar-info-val">English</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Profile Checklist -->
+          <div class="section-card">
+            <div class="section-head">
+              <div class="section-title">
+                <div class="section-title-icon" style="background:rgba(16,185,129,0.1)">✅</div>
+                Profile Checklist
+              </div>
+            </div>
+            <div class="section-body">
+              <div class="checklist-item" id="chk_bio">
+                <div class="check-dot todo">○</div>
+                <div class="checklist-text">Write a short, specific bio</div>
+              </div>
+              <div class="checklist-item" id="chk_location">
+                <div class="check-dot todo">○</div>
+                <div class="checklist-text">Add your location</div>
+              </div>
+              <div class="checklist-item" id="chk_skills">
+                <div class="check-dot todo">○</div>
+                <div class="checklist-text">Post at least one skill</div>
+              </div>
+              <div class="checklist-item" id="chk_proof">
+                <div class="check-dot warn">!</div>
+                <div class="checklist-text">Add proof to a skill listing</div>
+              </div>
+              <div class="checklist-item">
+                <div class="check-dot todo">○</div>
+                <div class="checklist-text">Make a connection</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Tips -->
+          <div class="section-card">
+            <div class="section-head">
+              <div class="section-title">
+                <div class="section-title-icon" style="background:rgba(245,158,11,0.1)">💡</div>
+                Quick Tips
+              </div>
+            </div>
+            <div class="section-body">
+              <div class="tip-card">
+                <div class="tip-card-icon" style="background:rgba(99,102,241,0.1)">🔗</div>
+                <div class="tip-card-text"><strong>Add proof links</strong>Portfolio links and GitHub repos build trust
+                  with other members.</div>
+              </div>
+              <div class="tip-card">
+                <div class="tip-card-icon" style="background:rgba(16,185,129,0.1)">🤝</div>
+                <div class="tip-card-text"><strong>Respond quickly</strong>Fast replies boost your visibility in search
+                  results.</div>
+              </div>
+              <div class="tip-card">
+                <div class="tip-card-icon" style="background:rgba(245,158,11,0.1)">⭐</div>
+                <div class="tip-card-text"><strong>Complete your profile</strong>Full profiles receive 3× more
+                  connection requests.</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('ss_token');
+    const loggedInUser = JSON.parse(localStorage.getItem('ss_user') || '{}');
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get('userId') || loggedInUser.id;
+
+    if (!token) window.location.href = 'login.html';
+
+    function authHeader() { return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }; }
+    function logout() { localStorage.removeItem('ss_token'); localStorage.removeItem('ss_user'); window.location.href = 'index.html'; }
+
+    // Mirrors search.html exactly — keeps connection state sets up to date
+    let connectedUserIds = new Set();
+    let pendingUserIds = new Set();
+    async function loadConnectedUsers() {
+      try {
+        const [connRes, sentRes] = await Promise.all([
+          fetch('/api/connections', { headers: authHeader() }),
+          fetch('/api/requests/sent', { headers: authHeader() })
+        ]);
+        if (connRes.ok) {
+          const conns = await connRes.json();
+          // Deduplicate by partner_id — one unique partner = one connection
+          connectedUserIds = new Set(Array.isArray(conns) ? conns.map(c => String(c.partner_id)) : []);
+        }
+        if (sentRes.ok) {
+          const sent = await sentRes.json();
+          pendingUserIds = new Set(
+            Array.isArray(sent)
+              ? sent.filter(r => r.status === 'pending').map(r => String(r.receiver_id))
+              : []
+          );
+        }
+      } catch (e) { connectedUserIds = new Set(); pendingUserIds = new Set(); }
+    }
+    function getInitials(name) { return name ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '?'; }
+    function timeAgo(date) {
+      const s = Math.floor((new Date() - date) / 1000);
+      if (s < 60) return 'just now';
+      if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+      if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+      if (s < 2592000) return `${Math.floor(s / 86400)}d ago`;
+      return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+    function levelBadge(level) {
+      const map = { Beginner: 'grey', Intermediate: 'amber', Advanced: 'purple', Expert: 'green' };
+      return `<span class="px-badge ${map[level] || 'grey'}">${level}</span>`;
+    }
+    function categoryIcon(cat) {
+      const icons = { Programming: '💻', Design: '🎨', Marketing: '📣', Data: '📊', Business: '💼', Music: '🎵', Language: '🌐', Science: '🔬', Writing: '✍️', Photography: '📸', Finance: '💰', Fitness: '💪' };
+      return icons[cat] || '✦';
+    }
+    function levelToPercent(level) {
+      return { Beginner: 25, Intermediate: 55, Advanced: 78, Expert: 95 }[level] || 40;
+    }
+    function avatarStorageKey() { return `ss_avatar_${userId}`; }
+
+    /* NAV DROPDOWN */
+    function toggleNavDropdown(id, e) {
+      if (e) e.preventDefault();
+      const el = document.getElementById(id);
+      const isOpen = el.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown-panel.open').forEach(p => p.classList.remove('open'));
+      if (!isOpen) el.classList.add('open');
+    }
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.nav-item-dropdown'))
+        document.querySelectorAll('.nav-dropdown-panel.open').forEach(p => p.classList.remove('open'));
+    });
+
+    async function loadNavNotifications() {
+      try {
+        const [reqRes, chatRes] = await Promise.all([
+          fetch('/api/requests/received', { headers: authHeader() }),
+          fetch('/api/messages/unread-count', { headers: authHeader() })
+        ]);
+        if (reqRes.ok) {
+          const reqData = await reqRes.json();
+          const pending = (reqData.requests || []).filter(r => r.status === 'pending');
+          if (pending.length > 0) {
+            const badge = document.getElementById('navRequestsBadge');
+            badge.textContent = pending.length; badge.style.display = 'inline-block';
+            document.getElementById('navRequestsBody').innerHTML = pending.slice(0, 5).map(r => `
+              <a href="requests.html" class="nav-dropdown-item">
+                <div class="nav-dropdown-item-title">${r.requester_name || 'Someone'} → ${r.skill_name}</div>
+                <div class="nav-dropdown-item-meta">${timeAgo(new Date(r.created_at))}</div>
+              </a>`).join('');
+          }
+        }
+        if (chatRes.ok) {
+          const chatData = await chatRes.json();
+          const count = chatData.unread_count || 0;
+          if (count > 0) {
+            const badge = document.getElementById('navChatBadge');
+            badge.textContent = count; badge.style.display = 'inline-block';
+            document.getElementById('navChatBody').innerHTML = `<a href="chat.html" class="nav-dropdown-item"><div class="nav-dropdown-item-title">${count} unread message${count > 1 ? 's' : ''}</div></a>`;
+          }
+        }
+      } catch (_) { }
+    }
+
+    /* EDIT PROFILE */
+    function openEditProfile() {
+      document.getElementById('edit_name').value = document.getElementById('p_name').textContent;
+      document.getElementById('edit_bio').value = document.getElementById('p_bio').textContent === 'No bio provided.' ? '' : document.getElementById('p_bio').textContent;
+      document.getElementById('edit_location').value = document.getElementById('sidebar_location').textContent === '—' ? '' : document.getElementById('sidebar_location').textContent;
+      document.getElementById('editProfileModal').classList.add('open');
+    }
+    function closeEditProfile() { document.getElementById('editProfileModal').classList.remove('open'); }
+
+    async function saveProfile() {
+      const btn = document.getElementById('saveProfileBtn');
+      const alertEl = document.getElementById('editProfileAlert');
+      btn.disabled = true; btn.textContent = 'Saving…';
+      alertEl.className = 'alert'; alertEl.textContent = '';
+      const body = {
+        name: document.getElementById('edit_name').value.trim(),
+        bio: document.getElementById('edit_bio').value.trim(),
+        location: document.getElementById('edit_location').value.trim()
+      };
+      try {
+        const res = await fetch('/api/auth/profile', { method: 'PUT', headers: authHeader(), body: JSON.stringify(body) });
+        const data = await res.json();
+        if (!res.ok) {
+          alertEl.textContent = data.error || 'Failed to save.';
+          alertEl.className = 'alert alert-error show';
+        } else {
+          document.getElementById('p_name').textContent = body.name || document.getElementById('p_name').textContent;
+          document.getElementById('p_bio').textContent = body.bio || 'No bio provided.';
+          if (body.location) {
+            document.getElementById('sidebar_location').textContent = body.location;
+            document.getElementById('p_location').innerHTML = `<span class="meta-chip-icon">📍</span><span>${body.location}</span>`;
+          }
+          closeEditProfile();
+          loadProfile();
+        }
+      } catch (err) {
+        alertEl.textContent = 'Network error.';
+        alertEl.className = 'alert alert-error show';
+      }
+      btn.disabled = false; btn.textContent = 'Save Changes';
+    }
+
+    /* PHOTO MODAL */
+    let pendingAvatarFile = null;
+
+    function openPhotoModal() { document.getElementById('photoUploadModal').classList.add('open'); }
+    function closePhotoModal() {
+      document.getElementById('photoUploadModal').classList.remove('open');
+      document.getElementById('uploadPreview').style.display = 'none';
+      document.getElementById('uploadDropzoneInner').style.display = '';
+      document.getElementById('uploadAlert').className = 'alert';
+      document.getElementById('removePhotoBtn').style.display = 'none';
+      pendingAvatarFile = null;
+    }
+
+    function handleAvatarFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) { showUploadAlert('File too large. Max 5 MB.', 'error'); return; }
+      pendingAvatarFile = file;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const preview = document.getElementById('uploadPreview');
+        preview.src = ev.target.result;
+        preview.style.display = 'block';
+        document.getElementById('uploadDropzoneInner').style.display = 'none';
+        document.getElementById('removePhotoBtn').style.display = 'inline-flex';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    const dropzone = document.getElementById('uploadDropzone');
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault(); dropzone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) handleAvatarFile({ target: { files: [file] } });
+    });
+
+    function showUploadAlert(msg, type) {
+      const el = document.getElementById('uploadAlert');
+      el.textContent = msg; el.className = `alert alert-${type} show`;
+    }
+
+    async function uploadAvatar() {
+      if (!pendingAvatarFile) { showUploadAlert('Please select a photo first.', 'error'); return; }
+      const btn = document.getElementById('savePhotoBtn');
+      btn.disabled = true; btn.textContent = 'Uploading…';
+
+      const persistLocally = (dataUrl) => {
+        setAvatarImage(dataUrl);
+        localStorage.setItem(avatarStorageKey(), dataUrl);
+        showUploadAlert('Photo updated successfully.', 'success');
+        btn.disabled = false; btn.textContent = 'Save Photo';
+        setTimeout(() => closePhotoModal(), 900);
+      };
+
+      try {
+        const formData = new FormData();
+        formData.append('avatar', pendingAvatarFile);
+        const res = await fetch('/api/auth/avatar', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const url = data.avatar_url 
+  ?        `/uploads/${data.avatar_url}` 
+           :null;
+          if (url) {
+            setAvatarImage(url);
+            localStorage.setItem(avatarStorageKey(), url);
+            showUploadAlert('Photo updated successfully.', 'success');
+            setTimeout(() => closePhotoModal(), 900);
+          } else {
+            const reader = new FileReader();
+            reader.onload = ev => persistLocally(ev.target.result);
+            reader.readAsDataURL(pendingAvatarFile);
+          }
+        } else {
+          const reader = new FileReader();
+          reader.onload = ev => persistLocally(ev.target.result);
+          reader.readAsDataURL(pendingAvatarFile);
+        }
+      } catch (_) {
+        const reader = new FileReader();
+        reader.onload = ev => persistLocally(ev.target.result);
+        reader.readAsDataURL(pendingAvatarFile);
+      }
+      btn.disabled = false; btn.textContent = 'Save Photo';
+    }
+
+    async function removeAvatar() {
+      try { await fetch('/api/auth/avatar', { method: 'DELETE', headers: authHeader() }); } catch (_) { }
+      localStorage.removeItem(avatarStorageKey());
+      document.getElementById('p_avatar').innerHTML = getInitials(document.getElementById('p_name').textContent);
+      closePhotoModal();
+    }
+
+    function setAvatarImage(url) {
+      document.getElementById('p_avatar').innerHTML = `<img src="${url}" alt="Profile photo" />`;
+    }
+
+    /* LOAD PROFILE (unchanged API) */
+    async function loadProfile() {
+      try {
+        const res = await fetch(`/api/auth/profile/${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (!res.ok) {
+          document.getElementById('alert').textContent = data.error || 'Profile not found.';
+          document.getElementById('alert').className = 'alert alert-error show';
+          document.getElementById('profileLoading').style.display = 'none';
+          return;
+        }
+
+        const { user, stats, skills, requests } = data;
+
+        /* Avatar — backend URL > localStorage cache > initials */
+        const avatarEl = document.getElementById('p_avatar');
+        const cachedAvatar = localStorage.getItem(avatarStorageKey());
+        if (user.avatar_url) {
+          avatarEl.innerHTML = `<img src="${user.avatar_url}" alt="${user.name}" />`;
+          localStorage.setItem(avatarStorageKey(), user.avatar_url);
+        } else if (cachedAvatar) {
+          avatarEl.innerHTML = `<img src="${cachedAvatar}" alt="${user.name}" />`;
+        } else {
+          avatarEl.textContent = getInitials(user.name);
+        }
+
+        /* Name / bio / meta */
+        document.getElementById('p_name').textContent = user.name;
+        document.getElementById('p_bio').textContent = user.bio || 'No bio provided.';
+
+        const locText = user.location || 'Remote / Global';
+        const joinText = `Joined ${new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+
+        document.getElementById('p_location').innerHTML = `<span class="meta-chip-icon">📍</span><span>${locText}</span>`;
+        document.getElementById('p_joined').innerHTML = `<span class="meta-chip-icon">📅</span><span>${joinText}</span>`;
+        document.getElementById('sidebar_location').textContent = locText;
+        document.getElementById('sidebar_joined').textContent = joinText.replace('Joined ', '');
+
+        /* Actions */
+        const isSelf = String(user.id) === String(loggedInUser.id);
+        if (isSelf) {
+          document.getElementById('selfActions').style.display = 'block';
+          document.getElementById('avatarUploadBtn').style.display = 'flex';
+        } else {
+          const otherDiv = document.getElementById('otherActions');
+          otherDiv.style.display = 'flex';
+          document.getElementById('p_chat_btn').onclick = () =>
+            window.location = `chat.html?user=${user.id}&name=${encodeURIComponent(user.name)}`;
+
+          // Load connection state BEFORE setting button state
+          await loadConnectedUsers();
+          
+          // Determine initial button state: check accepted connections AND pending outgoing requests
+          const connectBtn = document.getElementById('p_connect_btn');
+          // Use the first skill of the viewed user as the skill_id for the request.
+          // skills[] is already loaded above from the profile API response.
+          const profileSkillId = skills.length > 0 ? skills[0].id : null;
+          // Store on button element so onclick closure always has it
+          connectBtn.dataset.skillId = profileSkillId || '';
+          
+          // Use the global sets populated by loadConnectedUsers()
+          const uid = String(user.id);
+          if (connectedUserIds.has(uid)) {
+            applyConnectButtonState(connectBtn, 'connected');
+          } else if (pendingUserIds.has(uid)) {
+            applyConnectButtonState(connectBtn, 'requested');
+          } else {
+            applyConnectButtonState(connectBtn, 'connect');
+            connectBtn.onclick = () => sendConnectionRequest(user.id, profileSkillId, connectBtn);
+          }
+        }
+
+        /* Completion */
+        const comp = stats.profile_completeness || 0;
+        document.getElementById('p_completeness_val').textContent = `${comp}%`;
+        setTimeout(() => { document.getElementById('p_completeness_bar').style.width = `${comp}%`; }, 200);
+
+        /* Stats */
+        // Count only unique skills (title + category)
+        const uniqueSkills = new Set(
+          skills.map(s => `${s.title.toLowerCase().trim()}_${s.category}`)
+        );
+        const skillsCount = uniqueSkills.size;
+        document.getElementById('stat_skills').textContent = skillsCount;
+        document.getElementById('stat_requests').textContent = requests.length;
+        
+        // Fetch connections and deduplicate by partner_id for accurate count
+        try {
+          const connRes = await fetch('/api/connections', { headers: authHeader() });
+          if (connRes.ok) {
+            const connections = await connRes.json();
+            const uniquePartners = new Set(
+              Array.isArray(connections) ? connections.map(c => String(c.partner_id)) : []
+            );
+            document.getElementById('stat_connections').textContent = uniquePartners.size;
+          } else {
+            document.getElementById('stat_connections').textContent = 0;
+          }
+        } catch (e) {
+          document.getElementById('stat_connections').textContent = 0;
+        }
+        
+        document.getElementById('stat_proofs').textContent = skills.filter(s => s.proof_link).length;
+
+        if (skills.length > 0) { const b = document.getElementById('skills_count_badge'); b.textContent = skills.length; b.style.display = 'inline-block'; }
+        if (requests.length > 0) { const b = document.getElementById('requests_count_badge'); b.textContent = requests.length; b.style.display = 'inline-block'; }
+
+        /* Skills list */
+        const eList = document.getElementById('expertiseList');
+        if (skills.length === 0) {
+          eList.innerHTML = `<div class="empty-state"><div class="empty-icon">🎯</div><div class="empty-title">No skills posted yet</div><div class="empty-sub">Add your expertise to start connecting<br>with people who want to learn from you.</div></div>`;
+        } else {
+          eList.innerHTML = skills.map(s => `
+            <div class="skill-item">
+              <div class="skill-item-icon">${categoryIcon(s.category)}</div>
+              <div class="skill-item-body">
+                <div class="skill-item-top">
+                  <span class="skill-item-name">${s.title}</span>
+                  ${levelBadge(s.level)}
+                </div>
+                ${s.description ? `<div class="skill-item-desc">${s.description}</div>` : ''}
+                <div class="skill-item-tags">
+                  <span class="px-badge grey">${s.category}</span>
+                  ${s.is_verified ? '<span class="px-badge green">✓ Verified</span>' : ''}
+                  ${s.proof_link ? `<a href="${s.proof_link}" target="_blank" class="px-badge sky" style="cursor:pointer;text-decoration:none">🔗 Proof</a>` : ''}
+                </div>
+              </div>
+            </div>`).join('');
+
+          /* Skill Summary — built from existing skills data, no extra API call */
+          const summaryCard = document.getElementById('skillSummaryCard');
+          const summaryList = document.getElementById('skillSummaryList');
+          summaryCard.style.display = 'block';
+          summaryList.innerHTML = skills.slice(0, 5).map(s => `
+            <div class="skill-bar-item">
+              <div class="skill-bar-label" title="${s.title}">${s.title}</div>
+              <div class="skill-bar-track"><div class="skill-bar-fill" style="width:${levelToPercent(s.level)}%"></div></div>
+              <div class="skill-bar-level">${s.level || 'Beginner'}</div>
+            </div>`).join('');
+        }
+
+        /* Learning interests */
+        const iList = document.getElementById('interestsList');
+        if (requests.length === 0) {
+          iList.innerHTML = `<div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">No learning interests listed</div><div class="empty-sub">What do you want to learn next?<br>Post a request and find the right mentor.</div></div>`;
+        } else {
+          iList.innerHTML = `<div class="interest-grid">${requests.map(r => `<span class="interest-pill-new">📌 ${r.skill_name}</span>`).join('')}</div>`;
+        }
+
+        /* Activity — derived from existing skills + requests data, no extra API */
+        const activityEl = document.getElementById('activityList');
+        const activityItems = [];
+
+        skills.forEach(s => activityItems.push({
+          icon: '🎯', iconBg: 'rgba(99,102,241,0.1)',
+          title: `Added skill: <strong>${s.title}</strong>`,
+          meta: `${s.category} · ${s.level}`,
+          date: s.created_at ? new Date(s.created_at) : null
+        }));
+
+        requests.forEach(r => activityItems.push({
+          icon: '📌', iconBg: 'rgba(16,185,129,0.1)',
+          title: `Looking to learn: <strong>${r.skill_name}</strong>`,
+          meta: r.description ? r.description.slice(0, 70) + (r.description.length > 70 ? '…' : '') : 'Learning request posted',
+          date: r.created_at ? new Date(r.created_at) : null
+        }));
+
+        if (stats.connections > 0) activityItems.push({
+          icon: '🤝', iconBg: 'rgba(14,165,233,0.1)',
+          title: `Connected with <strong>${stats.connections} member${stats.connections > 1 ? 's' : ''}</strong>`,
+          meta: 'Network growing on SkillSphere', date: null
+        });
+
+        activityItems.sort((a, b) => {
+          if (!a.date && !b.date) return 0;
+          if (!a.date) return 1; if (!b.date) return -1;
+          return b.date - a.date;
+        });
+
+        if (activityItems.length === 0) {
+          activityEl.innerHTML = `<div class="empty-state"><div class="empty-icon">⚡</div><div class="empty-title">No recent activity</div><div class="empty-sub">Interactions and updates will appear here.</div></div>`;
+        } else {
+          activityEl.innerHTML = activityItems.slice(0, 6).map(item => `
+            <div class="activity-item">
+              <div class="activity-dot" style="background:${item.iconBg}">${item.icon}</div>
+              <div class="activity-body">
+                <div class="activity-title">${item.title}</div>
+                <div class="activity-meta">${item.meta}${item.date ? ' · ' + timeAgo(item.date) : ''}</div>
+              </div>
+            </div>`).join('');
+        }
+
+        /* Checklist */
+        if (user.bio) updateCheck('chk_bio', 'done');
+        if (user.location) updateCheck('chk_location', 'done');
+        if (skills.length > 0) updateCheck('chk_skills', 'done');
+        if (skills.some(s => s.proof_link)) updateCheck('chk_proof', 'done');
+
+        document.getElementById('profileLoading').style.display = 'none';
+        document.getElementById('profileContent').style.display = 'block';
+
+      } catch (e) {
+        console.error(e);
+        document.getElementById('alert').textContent = 'An error occurred loading the profile.';
+        document.getElementById('alert').className = 'alert alert-error show';
+        document.getElementById('profileLoading').style.display = 'none';
+      }
+    }
+
+    function updateCheck(id, state) {
+      const row = document.getElementById(id);
+      if (!row) return;
+      const dot = row.querySelector('.check-dot');
+      dot.className = `check-dot ${state}`;
+      dot.textContent = state === 'done' ? '✓' : state === 'warn' ? '!' : '○';
+    }
+
+    // ── Shared connect-button helpers (mirrors search.html exactly) ─────────
+    // Sets button to the correct visual state — always full colour, no fading.
+    function applyConnectButtonState(btn, state) {
+      btn.disabled = (state !== 'connect');
+      btn.style.opacity = '1';   // always full opacity across all states
+      btn.textContent = state === 'connected' ? 'Connected'
+                      : state === 'requested' ? 'Requested'
+                      : state === 'sending'   ? 'Sending…'
+                      : 'Connect';
+    }
+
+    async function sendConnectionRequest(userId, skillId, btn) {
+      if (!userId || !btn || btn.disabled) return;
+      // Edge case: no skill_id available — cannot form a valid request
+      if (!skillId) {
+        const alertEl = document.getElementById('alert');
+        alertEl.textContent = 'Unable to send request: this mentor has no skills listed yet.';
+        alertEl.className = 'alert alert-error show';
+        setTimeout(() => { alertEl.className = 'alert'; }, 5000);
+        return;
+      }
+      applyConnectButtonState(btn, 'sending');
+      try {
+        const res = await fetch('/api/requests', {
+          method: 'POST',
+          headers: authHeader(),
+          body: JSON.stringify({ receiver_id: Number(userId), skill_id: Number(skillId) })
+        });
+        const data = await res.json();
+        
+        // Treat BOTH success (201) and already sent (409) as "Requested"
+        if (res.ok || res.status === 409) {
+          await loadConnectedUsers();   // refresh sets from server
+          applyConnectButtonState(btn, 'requested');
+          return;
+        }
+        
+        // Only real errors
+        applyConnectButtonState(btn, 'connect');
+        btn.onclick = () => sendConnectionRequest(userId, skillId, btn);
+        const alertEl = document.getElementById('alert');
+        alertEl.textContent = data.error || 'Connection request failed';
+        alertEl.className = 'alert alert-error show';
+        setTimeout(() => { alertEl.className = 'alert'; }, 5000);
+      } catch (e) {
+        // Network error: revert button to Connect so user can retry
+        applyConnectButtonState(btn, 'connect');
+        btn.onclick = () => sendConnectionRequest(userId, skillId, btn);
+      }
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      await loadConnectedUsers();
+      loadProfile();
+      loadNavNotifications();
+    });
+  </script>
+
+</body>
+</html>

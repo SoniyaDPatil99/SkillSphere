@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Explore Skills — SkillSphere</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+  #categoryBar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px 0;
+  margin-bottom: 20px;
+}
+
+#categoryBar::-webkit-scrollbar {
+  display: none;
+}
+
+.cat-bar-btn {
+  white-space: nowrap;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cat-bar-btn.active {
+  background: #6a5af9;
+  color: #fff;
+  border-color: #6a5af9;
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">SkillSphere</div>
+  <ul class="nav-links">
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="search.html" class="active">Explore</a></li>
+    <li class="nav-item-dropdown" id="navRequestsItem">
+      <a href="#" onclick="toggleNavDropdown('navRequestsDropdown', event)">Requests <span class="nav-badge" id="navRequestsBadge" style="display:none">0</span></a>
+      <div class="nav-dropdown-panel" id="navRequestsDropdown">
+        <div class="nav-dropdown-header">Incoming Requests</div>
+        <div class="nav-dropdown-body" id="navRequestsBody">
+          <div class="nav-dropdown-empty">No pending requests.</div>
+        </div>
+        <a href="requests.html" class="nav-dropdown-footer">View All Requests</a>
+      </div>
+    </li>
+    <li><a href="connections.html">Connections</a></li>
+    <li class="nav-item-dropdown" id="navChatItem">
+      <a href="#" onclick="toggleNavDropdown('navChatDropdown', event)">Chat <span class="nav-badge" id="navChatBadge" style="display:none">0</span></a>
+      <div class="nav-dropdown-panel" id="navChatDropdown">
+        <div class="nav-dropdown-header">Unread Messages</div>
+        <div class="nav-dropdown-body" id="navChatBody">
+          <div class="nav-dropdown-empty">No new messages.</div>
+        </div>
+        <a href="chat.html" class="nav-dropdown-footer">Open Messages</a>
+      </div>
+    </li>
+    <li><a href="profile.html">Profile</a></li>
+  </ul>
+  <div class="nav-actions">
+    <button onclick="logout()" class="btn btn-ghost btn-sm">Log out</button>
+  </div>
+</nav>
+
+<!-- REQUEST MODAL -->
+<div class="modal-overlay" id="requestModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🤝 Send Mentorship Request</div>
+      <button class="modal-close" onclick="closeRequestModal()">✕</button>
+    </div>
+    <div id="reqModalAlert" class="alert"></div>
+    <p style="margin-bottom:1.25rem;font-size:0.89rem;color:var(--text-secondary)">
+      Sending request to: <strong id="reqTeacherName" style="color:var(--text-primary)"></strong><br/>
+      Skill: <strong id="reqSkillTitle" style="color:var(--accent-hover)"></strong>
+    </p>
+    <div class="form-group">
+      <label class="form-label">Message (optional)</label>
+      <textarea id="reqMessage" class="form-textarea" rows="3" placeholder="Introduce yourself and why you'd like to learn from this mentor..."></textarea>
+    </div>
+    <button onclick="sendRequest()" class="btn btn-primary" style="width:100%;justify-content:center" id="reqBtn">
+      Send Request
+    </button>
+  </div>
+</div>
+
+<div class="page-shell">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Explore Skills</h1>
+      <p class="page-subtitle">Browse verified mentors and find someone to learn from</p>
+    </div>
+  </div>
+
+  <div id="globalAlert" class="alert"></div>
+
+  <!-- Search bar -->
+  <div class="search-bar-wrap">
+    <div class="search-input-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" class="form-input" placeholder="Search for skills, topics, technologies..." oninput="doSearch()" />
+    </div>
+    <select id="categoryFilter" class="form-select filter-select" onchange="doSearch()">
+      <option value="">All Categories</option>
+    </select>
+  </div>
+   <!-- Category Filter Bar -->
+  <div id="categoryBar" ></div> 
+
+  <div id="resultsContainer">
+    <div class="spinner"></div>
+  </div>
+</div>
+
+<script>
+  const token = localStorage.getItem('ss_token');
+  if (!token) window.location.href = 'login.html';
+
+  let currentReceiverId = null;
+  let currentSkillId = null;
+  let searchTimeout = null;
+  let lastQuery = '';
+  let connectedUserIds = new Set();   // accepted connections
+  let pendingUserIds = new Set();     // outgoing pending requests
+
+  async function loadConnectedUsers() {
+    try {
+      const [connRes, sentRes] = await Promise.all([
+        fetch('/api/connections', { headers: authHeader() }),
+        fetch('/api/requests/sent', { headers: authHeader() })
+      ]);
+      if (connRes.ok) {
+        const conns = await connRes.json();
+        // Deduplicate by partner_id — one unique partner = one connection
+        connectedUserIds = new Set(Array.isArray(conns) ? conns.map(c => String(c.partner_id)) : []);
+      }
+      if (sentRes.ok) {
+        const sent = await sentRes.json();
+        pendingUserIds = new Set(
+          Array.isArray(sent)
+            ? sent.filter(r => r.status === 'pending').map(r => String(r.receiver_id))
+            : []
+        );
+      }
+    } catch (e) { connectedUserIds = new Set(); pendingUserIds = new Set(); }
+  }
+
+  // ── Shared connect-button helpers ──────────────────────────────────────
+  // Returns the HTML for the connect button in the correct state.
+  function getConnectButtonHTML(userId, skillId) {
+    const uid = String(userId);
+    const base = 'btn btn-primary btn-sm';
+    const style = 'flex:1;justify-content:center;font-size:0.8rem;padding:0.4rem 0.5rem;';
+    if (connectedUserIds.has(uid)) {
+      return `<button class="${base}" style="${style}" disabled>Connected</button>`;
+    }
+    if (pendingUserIds.has(uid)) {
+      return `<button class="${base}" style="${style}" disabled>Requested</button>`;
+    }
+    return `<button class="${base} explore-connect-btn" data-uid="${userId}" data-skill-id="${skillId}" style="${style}">Connect</button>`;
+  }
+
+  // Sets button to the correct visual state (no opacity changes — always full colour).
+  function applyConnectButtonState(btn, state) {
+    btn.disabled = (state !== 'connect');
+    btn.textContent = state === 'connected' ? 'Connected'
+                    : state === 'requested' ? 'Requested'
+                    : state === 'sending'   ? 'Sending…'
+                    : 'Connect';
+    // Remove the click-trigger class when not in actionable state
+    if (state !== 'connect') {
+      btn.classList.remove('explore-connect-btn');
+    }
+  }
+
+  async function sendConnectionRequest(userId, skillId, btn) {
+    if (!userId || !btn || btn.disabled) return;
+    // Edge case: no skill_id available — cannot form a valid request
+    if (!skillId) {
+      showGlobalAlert('Unable to send request: no skill found for this mentor.', 'error');
+      return;
+    }
+    applyConnectButtonState(btn, 'sending');
+    try {
+      const res = await fetch('/api/requests', {
+        method: 'POST',
+        headers: authHeader(),
+        body: JSON.stringify({ receiver_id: Number(userId), skill_id: Number(skillId) })
+      });
+      const data = await res.json();
+      
+      // Treat BOTH success (201) and already sent (409) as "Requested"
+      if (res.ok || res.status === 409) {
+        await loadConnectedUsers();   // refresh sets from server
+        applyConnectButtonState(btn, 'requested');
+        return;
+      }
+      
+      // Only real errors
+      applyConnectButtonState(btn, 'connect');
+      btn.classList.add('explore-connect-btn');
+      showGlobalAlert(data.error || 'Connection request failed', 'error');
+    } catch (e) {
+      // Network error: revert button to Connect so user can retry
+      applyConnectButtonState(btn, 'connect');
+      btn.classList.add('explore-connect-btn');
+      showGlobalAlert('Network error occurred', 'error');
+    }
+  }
+  // ────────────────────────────────────────────────────────────────────────
+
+  function authHeader() { return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }; }
+  function logout() { localStorage.removeItem('ss_token'); localStorage.removeItem('ss_user'); window.location.href = 'index.html'; }
+  
+  function timeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    if (seconds < 60) return 'just now';
+    if (seconds < 3600) return `${Math.floor(seconds/60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds/3600)}h ago`;
+    return `${Math.floor(seconds/86400)}d ago`;
+  }
+
+  // Nav Dropdown Logic
+  function toggleNavDropdown(id, e) {
+    if (e) e.preventDefault();
+    const el = document.getElementById(id);
+    const parent = el.parentElement;
+    const isOpen = parent.classList.contains('open');
+    document.querySelectorAll('.nav-item-dropdown').forEach(d => d.classList.remove('open'));
+    if (!isOpen) parent.classList.add('open');
+  }
+
+  window.addEventListener('click', e => {
+    if (!e.target.closest('.nav-item-dropdown')) {
+      document.querySelectorAll('.nav-item-dropdown').forEach(d => d.classList.remove('open'));
+    }
+  });
+
+  async function loadNavNotifications() {
+    try {
+      const res = await fetch('/api/auth/nav-notifications', { headers: authHeader() });
+      if (!res.ok) return;
+      const { requests, messages } = await res.json();
+      const reqBadge = document.getElementById('navRequestsBadge');
+      const reqBody = document.getElementById('navRequestsBody');
+      if (requests.length > 0) {
+        reqBadge.textContent = requests.length;
+        reqBadge.style.display = 'inline-flex';
+        reqBody.innerHTML = requests.map(r => `
+          <a href="requests.html" class="nav-notification-item">
+            <div class="nav-notif-avatar">${getInitials(r.name)}</div>
+            <div class="nav-notif-content">
+              <div class="nav-notif-title">${r.name}</div>
+              <div class="nav-notif-desc">Requested help with ${r.skill_title}</div>
+              <div class="nav-notif-time">${timeAgo(new Date(r.created_at))}</div>
+            </div>
+            <div class="nav-notif-dot"></div>
+          </a>
+        `).join('');
+      } else {
+        reqBadge.style.display = 'none';
+        reqBody.innerHTML = '<div class="nav-dropdown-empty">No pending requests.</div>';
+      }
+      const chatBadge = document.getElementById('navChatBadge');
+      const chatBody = document.getElementById('navChatBody');
+      if (messages.length > 0) {
+        chatBadge.textContent = messages.length;
+        chatBadge.style.display = 'inline-flex';
+        chatBody.innerHTML = messages.map(m => `
+          <a href="chat.html?user=${m.sender_id}&name=${encodeURIComponent(m.name)}" class="nav-notification-item">
+            <div class="nav-notif-avatar">${getInitials(m.name)}</div>
+            <div class="nav-notif-content">
+              <div class="nav-notif-title">${m.name}</div>
+              <div class="nav-notif-desc">${m.content}</div>
+              <div class="nav-notif-time">${timeAgo(new Date(m.created_at))}</div>
+            </div>
+            <div class="nav-notif-dot"></div>
+          </a>
+        `).join('');
+      } else {
+        chatBadge.style.display = 'none';
+        chatBody.innerHTML = '<div class="nav-dropdown-empty">No new messages.</div>';
+      }
+    } catch (e) { console.error(e); }
+  }
+  function levelBadge(level) {
+    const map = { Beginner:'badge-grey', Intermediate:'badge-yellow', Advanced:'badge-purple', Expert:'badge-green' };
+    return `<span class="badge ${map[level] || 'badge-grey'}">${level}</span>`;
+  }
+  function getInitials(name) { return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2); }
+
+  function showGlobalAlert(msg, type) {
+    const el = document.getElementById('globalAlert');
+    el.textContent = msg; el.className = `alert alert-${type} show`;
+    setTimeout(() => { el.className = 'alert'; }, 5000);
+  }
+
+  async function loadCategories() {
+    const res = await fetch('/api/search/categories', { headers: authHeader() });
+    const cats = await res.json();
+    const select = document.getElementById('categoryFilter');
+    cats.forEach(c => { const opt = document.createElement('option'); opt.value = c; opt.textContent = c; select.appendChild(opt); });
+  }
+
+  async function doSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(async () => {
+      const q = document.getElementById('searchInput').value.trim();
+      const category = document.getElementById('categoryFilter').value;
+      lastQuery = q;
+      const container = document.getElementById('resultsContainer');
+      container.innerHTML = '<div class="spinner"></div>';
+
+      const url = `/api/search?q=${encodeURIComponent(q)}&category=${encodeURIComponent(category)}`;
+      const res = await fetch(url, { headers: authHeader() });
+      const skills = await res.json();
+
+      if (!skills.length) {
+        await renderNoResults(q);
+      } else {
+        renderResults(skills);
+      }
+
+    }, 300);
+  }
+
+  function renderResults(skills) {
+    const groupedByTeacher = skills.reduce((groups, skill) => {
+      const key = skill.user_id;
+      if (!groups[key]) {
+        groups[key] = {
+          user_id: skill.user_id,
+          teacher_name: skill.teacher_name,
+          teacher_location: skill.teacher_location,
+          teacher_bio: skill.teacher_bio,
+          is_verified: skill.is_verified,
+          avatar_url: skill.avatar_url || null,
+          skills: []
+        };
+      }
+      groups[key].skills.push(skill);
+      return groups;
+    }, {});
+
+    const cards = Object.values(groupedByTeacher).map(teacher => {
+      const firstSkill = teacher.skills[0];
+      const moreCount = teacher.skills.length - 1;
+      return `
+      <div class="skill-result-card" style="padding: 1.25rem; display:flex; flex-direction:column; height:auto;">
+        <div class="skill-result-header" style="margin-bottom: 0.75rem;">
+          ${teacher.avatar_url
+            ? `<img src="${teacher.avatar_url}" alt="${teacher.teacher_name}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
+            : `<div class="avatar" style="width:40px;height:40px;font-size:0.9rem;">${getInitials(teacher.teacher_name)}</div>`}
+          <div class="skill-result-info">
+            <div class="skill-result-title" style="font-size: 0.95rem; margin-bottom: 0.15rem;">${teacher.teacher_name}</div>
+            <div class="skill-result-teacher" style="font-size: 0.75rem; color: var(--text-muted);">${teacher.teacher_location ? `📍 ${teacher.teacher_location}` : 'Mentor'}</div>
+            <div style="display:flex;gap:0.25rem;flex-wrap:wrap; margin-top: 0.3rem;">
+              ${teacher.is_verified ? '<span class="badge badge-green" style="font-size:0.7rem;padding:0.2rem 0.5rem;">✓ Verified</span>' : ''}
+            </div>
+          </div>
+        </div>
+        
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+          ${teacher.skills.length} skill${teacher.skills.length !== 1 ? 's' : ''} offered
+        </div>
+
+        <div style="margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid rgba(0,0,0,0.06);">
+          <div style="font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem;">${firstSkill.title}</div>
+          <div style="display:flex; gap:0.3rem; flex-wrap:wrap; margin-bottom: 0.3rem;">
+            <span class="badge badge-grey" style="font-size:0.7rem;padding:0.2rem 0.4rem;">${firstSkill.category}</span>
+            ${levelBadge(firstSkill.level)}
+          </div>
+          ${moreCount > 0 ? `
+            <div id="extra-skills-${teacher.user_id}" style="display:none; margin-top:0.4rem;">
+              ${teacher.skills.slice(1).map(s => `
+                <div style="padding:0.35rem 0; border-top:1px solid rgba(0,0,0,0.05);">
+                  <div style="font-weight:600;font-size:0.82rem;">${s.title}</div>
+                  <div style="display:flex;gap:0.3rem;flex-wrap:wrap;margin-top:0.2rem;">
+                    <span class="badge badge-grey" style="font-size:0.68rem;padding:0.15rem 0.35rem;">${s.category}</span>
+                    ${levelBadge(s.level)}
+                  </div>
+                </div>`).join('')}
+            </div>
+            <button class="toggle-skills-btn" data-uid="${teacher.user_id}" data-expanded="false"
+              style="font-size:0.75rem;color:var(--accent-hover);font-weight:500;background:none;border:none;cursor:pointer;padding:0;margin-top:0.2rem;">
+              +${moreCount} more skill${moreCount !== 1 ? 's' : ''}
+            </button>` : ''}
+        </div>
+
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:auto;">
+          ${getConnectButtonHTML(teacher.user_id, firstSkill.id)}
+          <a href="profile.html?userId=${teacher.user_id}" class="btn btn-outline btn-sm" style="flex:1; justify-content:center; font-size:0.8rem; padding:0.4rem 0.5rem;">View Profile</a>
+        </div>
+      </div>
+    `;
+    }).join('');
+
+    const container = document.getElementById('resultsContainer');
+    container.innerHTML = `
+      <p style="margin-bottom:1.25rem;font-size:0.84rem;color:var(--text-muted)">${skills.length} skill${skills.length !== 1 ? 's' : ''} found across ${Object.keys(groupedByTeacher).length} mentor${Object.keys(groupedByTeacher).length !== 1 ? 's' : ''}</p>
+      <div class="skills-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">${cards}</div>`;
+  }
+
+  async function renderNoResults(query) {
+    const container = document.getElementById('resultsContainer');
+
+    let ytHtml = '';
+    if (query) {
+      try {
+        const ytRes = await fetch(`/api/search/youtube?q=${encodeURIComponent(query)}`, { headers: authHeader() });
+        if (ytRes.ok) {
+          const videos = await ytRes.json();
+          if (videos && videos.length) {
+            ytHtml = `
+              <div class="yt-section">
+                <div class="yt-section-title">▶ Helpful Resources</div>
+                <p class="yt-section-desc">We couldn't find a mentor for <strong>"${query}"</strong> right now, but here are some helpful resources to get you started.</p>
+                <div class="yt-grid">
+                  ${videos.map(v => `
+                    <div class="yt-card">
+                      <div class="yt-thumb">
+                        <img src="${v.thumbnail}" alt="${v.title}" loading="lazy" />
+                        <div class="yt-play-overlay">▶</div>
+                      </div>
+                      <div class="yt-info">
+                        <div class="yt-title">${v.title}</div>
+                        <div class="yt-channel">📺 ${v.channel}</div>
+                        <a href="${v.url}" target="_blank" class="yt-watch-btn">▶ Watch on YouTube</a>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>`;
+          }
+        }
+      } catch(e) {}
+
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">🔎</div>
+          <div class="empty-state-title">No mentors found for "${query}"</div>
+          <p class="empty-state-text">No mentors match your search yet. Post a request and we'll notify the community when someone can help.</p>
+        </div>
+        ${ytHtml}
+        <div class="mentor-req-section">
+          <div class="mentor-req-title">Can't find what you're looking for?</div>
+          <p class="mentor-req-desc">Let the community know — request a mentor for <strong>"${query}"</strong> and we'll show it as a trending skill.</p>
+          <button onclick="requestMentor('${query.replace(/'/g,"\\'")}', this)" class="btn btn-primary">
+            📩 Request a Mentor for "${query}"
+          </button>
+          <div id="mentorReqAlert" class="alert" style="margin-top:1rem;text-align:left"></div>
+        </div>`;
+    } else {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">🔍</div>
+          <div class="empty-state-title">Search for a skill</div>
+          <p class="empty-state-text">Type a skill name above to find verified mentors ready to teach you.</p>
+        </div>`;
+    }
+  }
+
+  async function requestMentor(skill, btn) {
+    btn.disabled = true;
+    btn.textContent = 'Requesting...';
+    try {
+      const res = await fetch('/api/mentor-requests', {
+        method: 'POST',
+        headers: authHeader(),
+        body: JSON.stringify({ skill_name: skill })
+      });
+      const data = await res.json();
+      const alertEl = document.getElementById('mentorReqAlert');
+      if (res.ok) {
+        alertEl.textContent = `✓ Your request for "${skill}" has been saved. We'll notify the community!`;
+        alertEl.className = 'alert alert-success show';
+        btn.textContent = '✓ Requested!';
+      } else {
+        alertEl.textContent = data.error || 'Failed to save request.';
+        alertEl.className = 'alert alert-error show';
+        btn.disabled = false;
+        btn.textContent = `📩 Request a Mentor for "${skill}"`;
+      }
+    } catch(e) {
+      btn.disabled = false;
+      btn.textContent = `📩 Request a Mentor for "${skill}"`;
+    }
+  }
+
+  //         <span class="trending-pill-count">${t.count}</span>
+  //       </span>`).join('');
+  //     section.style.display = 'block';
+  //   } catch(e) {}
+  // }
+
+  function openRequestModal(receiverId, skillId, teacherName, skillTitle) {
+    currentReceiverId = receiverId; currentSkillId = skillId;
+    document.getElementById('reqTeacherName').textContent = teacherName;
+    document.getElementById('reqSkillTitle').textContent = skillTitle;
+    document.getElementById('reqMessage').value = '';
+    document.getElementById('reqModalAlert').className = 'alert';
+    document.getElementById('requestModal').classList.add('open');
+  }
+  function closeRequestModal() { document.getElementById('requestModal').classList.remove('open'); }
+  document.getElementById('requestModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeRequestModal(); });
+
+  function showReqAlert(msg, type) {
+    const el = document.getElementById('reqModalAlert');
+    el.textContent = msg; el.className = `alert alert-${type} show`;
+  }
+
+  async function sendRequest() {
+    const message = document.getElementById('reqMessage').value.trim();
+    const btn = document.getElementById('reqBtn');
+    btn.disabled = true; btn.textContent = 'Sending...';
+    try {
+      const res = await fetch('/api/requests', {
+        method: 'POST', headers: authHeader(),
+        body: JSON.stringify({ receiver_id: currentReceiverId, skill_id: currentSkillId, message })
+      });
+      const data = await res.json();
+      if (!res.ok) showReqAlert(data.error || 'Failed to send request.', 'error');
+      else { showReqAlert('Request sent successfully! ✓', 'success'); setTimeout(closeRequestModal, 1500); }
+    } catch(e) { showReqAlert('Network error.', 'error'); }
+    btn.disabled = false; btn.textContent = 'Send Request';
+  }
+
+  document.addEventListener('click', function(e) {
+    // Connect button
+    const connectBtn = e.target.closest('.explore-connect-btn');
+    if (connectBtn) {
+      sendConnectionRequest(connectBtn.dataset.uid, connectBtn.dataset.skillId, connectBtn);
+      return;
+    }
+    // Toggle +N more skills
+    const toggleBtn = e.target.closest('.toggle-skills-btn');
+    if (toggleBtn) {
+      const uid = toggleBtn.dataset.uid;
+      const expanded = toggleBtn.dataset.expanded === 'true';
+      const extraList = document.getElementById('extra-skills-' + uid);
+      if (extraList) {
+        if (expanded) {
+          extraList.style.display = 'none';
+          toggleBtn.dataset.expanded = 'false';
+          const count = extraList.querySelectorAll('div[style*="border-top"]').length;
+          toggleBtn.textContent = '+' + count + ' more skill' + (count !== 1 ? 's' : '');
+        } else {
+          extraList.style.display = 'block';
+          toggleBtn.dataset.expanded = 'true';
+          toggleBtn.textContent = 'Show less';
+        }
+      }
+    }
+  });
+  const CATEGORY_BAR_ITEMS = [
+    { label: 'All', value: '' },
+    { label: '🆕 New', value: 'New' },
+    { label: '🤖 AI', value: 'AI' },
+    { label: '🎨 Design', value: 'Design' },
+    { label: '⚙️ Engineering', value: 'Engineering' },
+    { label: '💻 Technology', value: 'Technology' },
+    { label: '📊 Data Science', value: 'Data Science' },
+    { label: '📣 Marketing', value: 'Marketing' },
+    { label: '🎵 Music', value: 'Music' },
+    { label: '🌐 Language', value: 'Language' },
+    { label: '🍳 Cooking', value: 'Cooking' },
+    { label: '💪 Fitness', value: 'Fitness' },
+  ];
+
+  let activeCategoryBarValue = '';
+
+  function buildCategoryBar() {
+  const bar = document.getElementById('categoryBar');
+  if (!bar) return;
+
+  bar.innerHTML = CATEGORY_BAR_ITEMS.map(item => `
+    <button class="cat-bar-btn ${item.value === activeCategoryBarValue ? 'active' : ''}" data-val="${item.value}">
+      ${item.label}
+    </button>
+  `).join('');
+
+  bar.querySelectorAll('.cat-bar-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeCategoryBarValue = btn.dataset.val;
+
+      const sel = document.getElementById('categoryFilter');
+      if (sel) sel.value = activeCategoryBarValue;
+
+      buildCategoryBar();
+      doSearch();
+    });
+  });
+}
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    await loadConnectedUsers();
+    loadCategories();
+    doSearch();
+    loadNavNotifications();
+    buildCategoryBar();
+  });
+</script>
+</body>
+</html>
