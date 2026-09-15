@@ -1,8 +1,8 @@
 -- SkillSphere Database Schema
 -- Run: mysql -u root -p < schema.sql
 
-CREATE DATABASE IF NOT EXISTS skillsphere;
-USE skillsphere;
+-- CREATE DATABASE IF NOT EXISTS skillsphere;
+-- USE skillsphere;
 
 -- Users Table
 CREATE TABLE IF NOT EXISTS users (

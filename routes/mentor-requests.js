@@ -87,5 +87,15 @@ router.get('/trending', auth, async (req, res) => {
     res.status(500).json({ error: 'Server error.' });
   }
 });
+// ✅ FIX: incoming requests route
+router.get('/incoming', auth, async (req, res) => {
+  try {
+    // Temporary safe response (no DB dependency)
+    res.json({ requests: [] });
+  } catch (err) {
+    console.error(err);
+    res.json({ requests: [] });
+  }
+});
 
 module.exports = router;

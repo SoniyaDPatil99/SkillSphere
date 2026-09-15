@@ -72,23 +72,40 @@ router.get('/', auth, async (req, res) => {
         u.name AS teacher_name, 
         u.bio AS teacher_bio, 
         u.location AS teacher_location,
-        (CASE 
-          WHEN s.status = 'approved' AND s.proof_link IS NOT NULL AND TRIM(s.proof_link) != '' THEN 1
-          ELSE 0
-        END) AS is_verified
+        (
+          CASE 
+            WHEN s.status = 'approved' AND (
+              (s.proof_link IS NOT NULL AND TRIM(s.proof_link) != '') OR
+              (s.proof_file IS NOT NULL AND TRIM(s.proof_file) != '')
+            )
+            THEN 1
+            ELSE 0
+          END
+        ) AS is_verified
       FROM skills s
       JOIN users u ON s.user_id = u.id
       WHERE s.user_id != ?
         AND s.is_draft = FALSE
     `;
+
     const params = [req.user.id];
-    if (q) { query += ' AND (s.title LIKE ? OR s.description LIKE ?)'; params.push(`%${q}%`, `%${q}%`); }
-    if (category) { query += ' AND s.category = ?'; params.push(category); }
-    query += ' ORDER BY s.created_at DESC';
+
+    if (q) {
+      query += ' AND (s.title LIKE ? OR s.description LIKE ?)';
+      params.push(`%${q}%`, `%${q}%`);
+    }
+
+    if (category) {
+      query += ' AND s.category = ?';
+      params.push(category);
+    }
+
+    query += ' ORDER BY is_verified DESC, s.created_at DESC';
+
     const [rows] = await db.query(query, params);
     res.json(rows);
   } catch (err) {
-    console.error(err);
+    console.error('Search Error:', err);
     res.status(500).json({ error: 'Server error.' });
   }
 });
@@ -96,9 +113,12 @@ router.get('/', auth, async (req, res) => {
 // GET /api/search/categories
 router.get('/categories', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT DISTINCT category FROM skills ORDER BY category');
+    const [rows] = await db.query(
+      'SELECT DISTINCT category FROM skills WHERE category IS NOT NULL AND TRIM(category) != "" ORDER BY category'
+    );
     res.json(rows.map(r => r.category));
   } catch (err) {
+    console.error('Categories Error:', err);
     res.status(500).json({ error: 'Server error.' });
   }
 });
@@ -107,6 +127,7 @@ router.get('/categories', async (req, res) => {
 router.get('/youtube', auth, async (req, res) => {
   const { q = '' } = req.query;
   if (!q.trim()) return res.json([]);
+
   try {
     const videos = await fetchYouTube(q.trim());
     res.json(videos);
@@ -124,42 +145,70 @@ router.get('/suggestions', auth, async (req, res) => {
   if (!skill) return res.json([]);
 
   try {
-    // Ranking logic:
-    // 1. Title match (Exact > Partial)
-    // 2. Category match
-    // 3. Level match
-    // 4. Status = approved (verified)
-    // 5. User last_seen (recent activity)
-    // 6. User profile completeness (bio, location)
-    
     let query = `
       SELECT 
-        u.id, u.name, u.bio, u.location, u.avatar_url, u.last_seen,
-        s.title as skill_title, s.category, s.level, s.status, s.proof_link,
-        (CASE 
-          WHEN s.status = 'approved' AND s.proof_link IS NOT NULL AND TRIM(s.proof_link) != '' THEN 1
-          ELSE 0
-        END) AS is_verified,
+        u.id,
+        u.name,
+        u.bio,
+        u.location,
+        u.avatar_url,
+        u.last_seen,
+        s.id AS skill_id,
+        s.title AS skill_title,
+        s.category,
+        s.level,
+        s.status,
+        s.proof_link,
+        s.proof_file,
         (
-          (CASE WHEN s.title = ? THEN 10 ELSE 0 END) +
-          (CASE WHEN s.title LIKE ? THEN 5 ELSE 0 END) +
-          (CASE WHEN s.category = ? THEN 3 ELSE 0 END) +
-          (CASE WHEN s.level = ? THEN 2 ELSE 0 END) +
-          (CASE WHEN s.status = 'approved' AND s.proof_link IS NOT NULL AND TRIM(s.proof_link) != '' THEN 2 ELSE 0 END) +
-          (CASE WHEN u.bio IS NOT NULL AND u.bio != '' THEN 1 ELSE 0 END) +
-          (CASE WHEN u.location IS NOT NULL AND u.location != '' THEN 1 ELSE 0 END)
-        ) as match_score
+          CASE 
+            WHEN s.status = 'approved' AND (
+              (s.proof_link IS NOT NULL AND TRIM(s.proof_link) != '') OR
+              (s.proof_file IS NOT NULL AND TRIM(s.proof_file) != '')
+            )
+            THEN 1
+            ELSE 0
+          END
+        ) AS is_verified,
+        (
+          (CASE WHEN LOWER(s.title) = LOWER(?) THEN 10 ELSE 0 END) +
+          (CASE WHEN LOWER(s.title) LIKE LOWER(?) THEN 6 ELSE 0 END) +
+          (CASE WHEN LOWER(s.description) LIKE LOWER(?) THEN 4 ELSE 0 END) +
+          (CASE WHEN ? != '' AND s.category = ? THEN 3 ELSE 0 END) +
+          (CASE WHEN ? != '' AND s.level = ? THEN 2 ELSE 0 END) +
+          (CASE 
+            WHEN s.status = 'approved' AND (
+              (s.proof_link IS NOT NULL AND TRIM(s.proof_link) != '') OR
+              (s.proof_file IS NOT NULL AND TRIM(s.proof_file) != '')
+            ) THEN 3 ELSE 0 
+          END) +
+          (CASE WHEN u.bio IS NOT NULL AND TRIM(u.bio) != '' THEN 1 ELSE 0 END) +
+          (CASE WHEN u.location IS NOT NULL AND TRIM(u.location) != '' THEN 1 ELSE 0 END)
+        ) AS match_score
       FROM skills s
       JOIN users u ON s.user_id = u.id
-      WHERE s.user_id != ? AND s.is_draft = FALSE
-        AND (s.title LIKE ? OR s.category = ?)
+      WHERE s.user_id != ?
+        AND s.is_draft = FALSE
+        AND (
+          LOWER(s.title) LIKE LOWER(?) OR
+          LOWER(s.description) LIKE LOWER(?) OR
+          LOWER(s.category) LIKE LOWER(?)
+        )
       HAVING match_score > 0
-      ORDER BY match_score DESC, u.last_seen DESC
+      ORDER BY match_score DESC, is_verified DESC, s.created_at DESC
       LIMIT 10
     `;
 
     const [rows] = await db.query(query, [
-      skill, `%${skill}%`, category, level, userId, `%${skill}%`, category
+      skill,                 // exact title
+      `%${skill}%`,          // partial title
+      `%${skill}%`,          // description
+      category, category,    // category scoring
+      level, level,          // level scoring
+      userId,                // exclude self
+      `%${skill}%`,          // where title
+      `%${skill}%`,          // where description
+      `%${skill}%`           // where category
     ]);
 
     res.json(rows);
