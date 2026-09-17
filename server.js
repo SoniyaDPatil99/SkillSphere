@@ -143,7 +143,7 @@ const requestedPort = process.env.PORT ? Number(process.env.PORT) : DEFAULT_PORT
 const isExplicitNonDefaultPort = !!process.env.PORT && requestedPort !== DEFAULT_PORT;
 
 function startServer(port, attempt = 0) {
-  server.listen(port, () => {
+  server.listen(port, '0.0.0.0', () => {
     console.log(`\n🚀 SkillSphere running at http://localhost:${port}\n`);
   });
 

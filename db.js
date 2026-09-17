@@ -1,4 +1,6 @@
 const mysql = require('mysql2/promise');
+const fs = require('fs');
+
 require('dotenv').config();
 
 const pool = mysql.createPool({
@@ -7,6 +9,13 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD || 'admin',
   database: process.env.DB_NAME || 'skillsphere',
   port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
+
+  ssl: process.env.DB_SSL_CA
+    ? {
+        ca: fs.readFileSync(process.env.DB_SSL_CA)
+      }
+    : undefined,
+
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
