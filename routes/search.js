@@ -114,7 +114,7 @@ router.get('/', auth, async (req, res) => {
 router.get('/categories', async (req, res) => {
   try {
     const [rows] = await db.query(
-      'SELECT DISTINCT category FROM skills WHERE category IS NOT NULL AND TRIM(category) != "" ORDER BY category'
+      "SELECT DISTINCT category FROM skills WHERE category IS NOT NULL AND TRIM(category) != '' ORDER BY category"
     );
     res.json(rows.map(r => r.category));
   } catch (err) {
