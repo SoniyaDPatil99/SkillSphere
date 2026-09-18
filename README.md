@@ -41,7 +41,9 @@ npm start
 npm run dev
 ```
 
-Visit: http://localhost:3000
+## 🚀 Live Demo
+
+[Visit SkillSphere] (https://skillsphere-75sp.onrender.com)
 
 ## Folder Structure
 ```
